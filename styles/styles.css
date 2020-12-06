@@ -44,6 +44,9 @@ pre {
     flex-direction: column;
     align-items: center;
 }
+.image-container img {
+    max-width: 800px;
+}
 .image-container p {
     text-align: center;
 }
@@ -92,4 +95,46 @@ pre {
 .page-container {
     max-width: 1080px;
     margin: auto;
+    padding: 30px;
+    padding-top: 0px;
+}
+
+@media screen and (max-width: 900px) {
+
+    /* General */
+    h1 {
+        font-size: 170%;
+    }
+    h3 {
+        font-size: 140%;
+    }
+    h5 {
+        font-size: 100%;
+    }
+    p {
+        font-size: 100%;
+    }
+    pre {
+        font-size : 100%;
+    }
+    .image-container img {
+        max-width: 100%;
+        padding: 20px;
+    }
+
+    /* Center Piece */
+    .center-piece div img {
+        width: 60px;
+    }
+    .center-piece div h1 {
+        font-size: 220%;
+    }
+    .center-piece div h3 {
+        font-size: 120%;
+    }
+
+    /* Nav */
+    .nav-item h1 {
+        font-size: 110%;
+    }
 }
