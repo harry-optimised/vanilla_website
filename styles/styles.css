@@ -3,24 +3,24 @@
 h1 {
     font-family: Manrope;
     font-weight: 500;
-    font-size: 300%;
+    font-size: 200%;
     color: #333333
 }
 h3 {
     font-family: Manrope;
     font-weight: 500;
-    font-size: 200%;
+    font-size: 150%;
     color: #333333
 }
 h5 {
     font-family: Lora;
     font-weight: 500;
-    font-size: 150%;
+    font-size: 100%;
     color: #333333;
 }
 p {
     font-family: Lora;
-    font-size: 150%;
+    font-size: 100%;
     color: #333333;
     line-height: 1.5;
 }
@@ -36,7 +36,7 @@ a:hover {
     text-decoration: underline;
 }
 pre {
-    font-size : 150%;
+    font-size : 100%;
     color: #e83e8c
 }
 .image-container {
@@ -61,12 +61,12 @@ pre {
     align-items: center;
 }
 .center-piece div h1 {
-    font-size: 600%;
+    font-size: 400%;
     font-weight: 700;
     margin: 16px;
 }
 .center-piece div h3 {
-    font-size: 250%;
+    font-size: 150%;
     font-weight: 300;
     margin: 8px;
 }
@@ -82,7 +82,7 @@ pre {
     cursor: pointer;
 }
 .nav-item h1 {
-    font-size: 200%;
+    font-size: 150%;
 }
 .nav-item h1 a {
     color: #333333;
