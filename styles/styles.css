@@ -139,6 +139,8 @@ pre {
     }
     .nav-item {
         padding: 0px;
+        padding-left: 5px;
+        padding-right: 5px;
     }
     .nav-item h1 {
         font-size: 130%;
