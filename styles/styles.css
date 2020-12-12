@@ -135,7 +135,6 @@ pre {
 
     /* Nav */
     .nav-bar {
-        justify-content: start;
         flex-wrap: wrap;
     }
     .nav-item h1 {
