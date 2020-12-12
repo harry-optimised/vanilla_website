@@ -137,7 +137,12 @@ pre {
     .nav-bar {
         flex-wrap: wrap;
     }
+    .nav-item {
+        padding: 0px;
+    }
     .nav-item h1 {
         font-size: 130%;
+        margin-top: 5px;
+        margin-bottom: 5px;
     }
 }
