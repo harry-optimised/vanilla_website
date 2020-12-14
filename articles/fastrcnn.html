@@ -307,6 +307,13 @@
                     box proposed by Selective Search.</i></p>
                 </div>
                 <p>
+                    What is this set of equations saying? It says that we're going to construct a new box, which is a combination
+                    of the box proposed by the Selective Search algorithm and the numbers coming out of our regressor. The width and height
+                    of our new box will be the width and height of the proposed box but it will be scaled by an exponentiated value, we'll
+                    see why in a moment. The <code>X</code> and <code>Y</code> of our new box will be the <code>X</code> and <code>Y</code>
+                    of the proposed box plus some scaled version of it's own width and height.
+                </p>
+                <p>
                     The <code>X</code> and <code>Y</code> coordinates of the target box are now defined as the <code>X</code> and <code>Y </code>
                     of the proposed box plus some predicted fraction of their height and width. This means, in order to adjust a box
                     to the left or right, the regressor <i>only needs to predict one number</i> and it'll move big and
