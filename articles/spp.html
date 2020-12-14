@@ -31,20 +31,25 @@
                 <p>
                     Their insight was that up to this point, all these tasks used convolutional
                     networks with fully connected layers at the end, and that these fully connected layers enforced a
-                    fixed size constraint on the input image. In other words, if the first fully connected layer is of size AxB, then
-                    the <i>resized</i> output from the last convolutional layer <i>must</i> be A (or matrix computation wouldn't line up), which fixes the next
-                    convolutional layer, and the next, all the way to the input. This is why AlexNet needs an input of 227x227.
+                    fixed size constraint on the input image. In other words, if the first fully connected layer is of size <code>A x B</code>, then
+                    the <i>resized</i> output from the last convolutional layer <i>must</i> be <code>A</code> (or the matrix computation wouldn't line up), which fixes the next
+                    convolutional layer, and the next, all the way to the input. This is why AlexNet needs an input of <code>227 x 227</code>.
                     SPP-Net introduced a new
                     layer between the final convolutional layer and the fully connected layer that removes this constraint.
                 </p>
                 <p>
                     It's called a spatial pyramid pooling layer and here's how it works. Refer to the image below this paragraph, 
-                    I'll explain it from the bottom up.
+                    I'll explain it from the bottom of the image up.
                     Once you've passed your
-                    image through the convolutional layers, you get a set of feature maps, for example, let's say 256. You max
+                    image through the convolutional layers, you get a set of feature maps, for example, let's say we get 256 feature maps. You max
                     pool each feature map to produce a vector of length 256 (remember max pool picks the largest value
-                    in each feature map and there are 256 maps). So you've now got a vector of 256, are you done? No,
-                    you've only done one layer of the pyramid. Now you do it again, but this time you split
+                    in each feature map and there are 256 maps). So you've now got a vector of 256. Technically, this vector
+                    represents a summarised version of our feature maps, you could pass that vector on to the final classification layer.
+                    In other words, the SPP layer has received a set of convolutional feature maps as input and flattened them into a
+                    256 length vector. But we can do better.
+                </p>
+                <p>
+                    We'll do the same thing again, but this time you split
                     each feature map into four quadrants (bins) and do a max pool in each bin, this gives you four
                     numbers for each of the 256 feature maps, or four lots of 256-length vectors, then you do it again
                     but split each feature map into 16 bins which gives you 16 lots of 256-length vectors. Now lets
