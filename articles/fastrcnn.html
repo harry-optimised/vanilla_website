@@ -23,9 +23,11 @@
                 <p><i>24th September 2020</i></p>
                 <h3>Fast R-CNN</h3>
                 <p>
-                    Fast R-CNN is an evolution of both R-CNN and SPPNet, so first of all, make sure you've read my posts on those and understand how both
+                    Fast R-CNN is an evolution of both
+                    <a href="https://www.harrysprojects.com/articles/rcnn.html">R-CNN</a> and
+                    <a href="https://www.harrysprojects.com/articles/spp.html">SPPNet</a>, so first of all, make sure you've read my posts on those and understand how both
                     of those networks work. Secondly, it is instructive to look at where they were not so good, as it was
-                    these that originally motivated Fast R-CNN.
+                    these reasons that originally motivated Fast R-CNN.
                 </p>
                 <p>
                     <b>R-CNN.</b> The first problem with R-CNN, is that it is slow at test time, because the feature extractor
@@ -35,10 +37,10 @@
                 <p>
                     The second problem is that training it is tedious, because it has to be done in multiple stages. First you train
                     and finetune the feature extractor, then you use that feature extractor to generate the feature vectors to
-                    train the SVMs and regressors. This makes it A) take a long time, B) error prone and fiddly.
+                    train the SVMs and regressors. This makes it error prone and time-consuming.
                 </p>
                 <p>
-                    Third, because you have to generate the feature vectors before training the SVMs and regressors, you need
+                    Thirdly, because you have to generate the feature vectors before training the SVMs and regressors, you need
                     to store them somewhere, meaning the training procedure actually required hundreds of GBs of space.
                 </p>
                 <p>
@@ -75,14 +77,14 @@
                 </p>
                 <h3>Architecture</h3>
                 <p>
-                    I'll start with the architecture, this is mostly to give you a visual map to help the explanations coming up, for this section
+                    I'll start with the architecture, this is mostly to give you a visual map of this post and to help the explanations coming up, for this section
                     please refer to the image below. As mentioned, rather than the feature extractor running on every region,
                     it runs once on the input image to generate a set of feature maps. <i>Separately to this</i>, Selective
                     Search also runs on the input image to generate the region proposals. These proposals are then projected
                     onto the feature maps, just like they are in SPPNet. For <i>each region proposal in the feature maps</i>,
                     an ROI Pool layer computes a fix length vector, I'll cover this in more detail shortly. That vector goes through
                     a couple of fully connected layers, which then split into two sibling branches, one branch to predict
-                    classes, and the other to predict bounding boxes. I'll discuss these in much greater depth later.
+                    classes, and the other to predict bounding boxes. I'll discuss these in greater depth later.
                     Finally, we do NMS to reduce duplicate boxes.
                 </p>
                 <div class="image-container">
@@ -112,7 +114,7 @@
                 </p>
                 <p>
                     A useful framework for thinking about modern object detectors is to split it into a backbone, and a head.
-                    The backbone takes in the image, and generates the feature maps. The head, takes in the feature maps (and
+                    The backbone takes in the image, and generates the feature maps. The head takes in the feature maps (and
                     some proposals) and generates classes and box predictions. We'll see later that we can add more heads (or more
                     branches to the same head) to do more tasks like mask prediction. As a side note, the latest architectures
                     introduce a term called the <i>neck</i>, which goes between the backbone and the head (surprise surprise),
@@ -130,7 +132,7 @@
                 <p>
                     At the time that this paper came out, the very popular ResNet architectures did not exist, but they are
                     just other types of backbones. <i>All modern implementations of Fast R-CNN and it's variants that you'll
-                    come across today use ResNet and other modern backbones.</i> It's rare to find one using VGG or AlexNet.
+                    come across today use ResNet and other modern backbones.</i> It's rare to find one using VGG or AlexNet nowadays.
                 </p>
                 <h3>The ROI Pool Layer</h3>
                 <p>
@@ -139,9 +141,9 @@
                     When I first read this paper I got confused about this layer and how it worked. Firstly, I hadn't read the
                     SPPNet paper which it is based off, second, it's got it's own impressive sounding name which made me think there was
                     some clever stuff going on. Make sure you've
-                    read my post on the SPPNet because <i>the ROI Pooling is just an SPP Pooling Layer with one pyramid level</i>.
+                    read my post on the SPPNet because <i>the ROI Pooling layer is just an SPP Pooling Layer with one pyramid level</i>.
                     That's it. I won't recap what I talked about in that post, suffice to say that the regions projected onto the
-                    feature maps are not all the same size, but you need a fixed length vector to go into the fully connected layers.
+                    feature maps are not all the same size, but you need a fixed length vector to go into the fully connected layers in the head.
                     It is the ROI Pooling layer that converts regions into fixed length vectors by binning and max pooling the
                     features in the feature map.
                 </p>
@@ -264,11 +266,10 @@
                 </p>
                 <p>
                     Interestingly, they select
-                    negatives as those that overlap ground truth by 0.1 to 0.5, and therefore give them the label of 0,
-                    remember this was defined in the loss? The lower bound of 0.1 apparently acts as
+                    negatives as those that overlap ground truth by 0.1 to 0.5, and therefore give them the label of 0.
+                    The lower bound of 0.1 apparently acts as
                     a hard negative mining heuristic, in other words, the negative samples are always regions that very slightly
-                    overlap the true box but not enough to be counted, those are the confusing ones. Regions that don't overlap
-                    are probably easy to classify.
+                    overlap the true box but not enough to be positive, those are the confusing ones.
                 </p>
                 <h3>Last Few Pieces</h3>
                 <p>
@@ -302,11 +303,12 @@
                 <div class="image-container">
                     <img src="../images/articles/fastrcnn/box_parameterisation.png"/>
                     <p><i>The box parameterisation defined in the R-CNN paper.
-                The regressor outputs dx(p), dy(p), dw(p), and dh(p).</i></p>
+                The regressor outputs dx(p), dy(p), dw(p), and dh(p). Whilst px, py, pw, ph are the coordinates of the
+                    box proposed by Selective Search.</i></p>
                 </div>
                 <p>
-                    The <code>X</code> and <code>Y</code> coordinates of the final box are now defined as the <code>X</code> and <code>Y </code>
-                    of the predicted box plus some fraction of their height and width. This means, in order to adjust a box
+                    The <code>X</code> and <code>Y</code> coordinates of the target box are now defined as the <code>X</code> and <code>Y </code>
+                    of the proposed box plus some predicted fraction of their height and width. This means, in order to adjust a box
                     to the left or right, the regressor <i>only needs to predict one number</i> and it'll move big and
                     small boxes relatively correct distances. <i>The regressor doesn't need to know how big the box is.</i>
                     This is super important as the regressor never knows how big the boxes are, they all get ROI Pooled into the
@@ -316,7 +318,8 @@
                     Okay, what about the size? Well, we <i>could</i> just have the regressor predict a multiplier for width and height, and scale
                     each accordingly. But this requires the regressor <i>to predict a 1</i> in order to keep the boxes the same
                     size. That's not too bad, but it's not great for numerical stability. More importantly though,
-                    <i> what if the regressor predicts -1?</i> Does the box get flipped inside out? No, we can't have negative
+                    <i> what if the regressor predicts -1?</i> Does the box get flipped inside out? It doesn't really make sense,
+                    so we can't have negative
                     multipliers, so let's take the exponential of the predicted value instead. Now, if the regressor predicts
                     a zero, the exponential evaluates to 1, so our box stays the same size! That's nice. If the regressor
                     predicts <i>less than zero</i>, the exponential will evaluate to less than 1 but greater than 0, so it will
@@ -347,6 +350,7 @@
                     <p><i>The box parameterisation targets defined in the R-CNN paper.</i></p>
                 </div>
                 <br />
+                <p><a href="https://www.harrysprojects.com/articles/fasterrcnn.html"/>Next: Faster R-CNN</a></p>
                 <br />
             </div>
 
