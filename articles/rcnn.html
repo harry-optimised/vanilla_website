@@ -103,7 +103,7 @@
                 </p>
                 <p>
                     But aren't the regions different sizes? Yes! AlexNet cannot handle different image sizes, that wasn't
-                    to come until 2016, it requires an exact input image of size 227 x 227. The authors went for the simplest option
+                    to come until 2016, it requires an exact input image of size <code>227 x 227</code>. The authors went for the simplest option
                     and just warped all regions (after cropping them out of the original image), into the right shape. This is a
                     one line operation in OpenCV. Note that
                     they also applied a bit of padding around the region to add a bit of context, they found this to be quite
@@ -114,13 +114,14 @@
                     At this point, we have 2000 regions from Selective Search, and we've applied our CNN feature extractor to
                     each region to get 2000 feature vectors, each of length 4096. The intuition at this point is that we already
                     have our boxes (thanks to Selective Search), we just need to know what's in them.
-                    The way R-CNN does this is to train a couple of Support Vector Machines (SVMs), one per class. An SVM
+                    The way R-CNN does this is to train a set of Support Vector Machines (SVMs), one per class. An SVM
                     (once trained) takes in a vector and computes a number, if that number is positive, then the SVM is classifying
                     the vector as belonging to that class. If you're curious as to how you handle the case of conflicting
                     answers, see the one-vs-rest approach. This is a drastic simplification of how SVMs work, I encourage you to read
                     up on them if you're interested, the important bit here is that we just need a way to classify vectors into
                     one of C classes, and SVMs are one way to do that. One final point, SVMs can process batches of vectors in one go,
-                    in fact for R-CNN they process all 2000 vectors to produce 2000 class predictions at the same time.
+                    in fact for R-CNN they process all 2000 vectors to produce 2000 class predictions at the same time. Note that
+                    you need to do this once for every class, so it scales linearly in the number of classes.
                 </p>
                 <p>
                     The authors trained the SVMs by feeding them labelled 4096-length vectors. They generated these vectors using
@@ -128,7 +129,7 @@
                     is that they crop out the ground truth box (after adding a bit of padding), put that through the feature extractor,
                     which generates a 4096-length vector, and label it with the label of the ground truth box. But what about negative examples?
                     They use Selective Search to generate proposals, then they select proposals with IOU <i>under</i> 0.3. They use a ratio
-                    of 25% to 75% negatives for training.
+                    of 25% to 75% negatives for training. See the Introduction to Object Detection series to read up on the IOU.
                 </p>
                 <h3>Non Maximum Suppresion</h3>
                 <p>
@@ -137,9 +138,11 @@
                     Search proposed lots of boxes for the same object, and so you'll get lots and lots of detections, see the dog
                     example below. In this case, what you really
                     want is to collapse those boxes down into the best one. One way to do this would be to average all the boxes
-                    that were predicted to be of class dog, but that doesn't give you very good results, a better way is to simply
-                    take the highest confidence box and use that one, the idea is that the highest confidence box is the one that
-                    probably fits the dog the best. NMS looks for <i>overlapping</i> boxes of the <i>same</i> class, and removes
+                    that were predicted to be of class dog, but that doesn't give you very good results, because low predictions
+                    probably have lower quality boxes and will pull the box in the wrong direction. We could do a weighted average,
+                    where each box is weighed by it's confidence prediction. That's not a bad idea but we can do one better,
+                    surely the highest confidence box is going to be the most accurate one as well, why don't we just use that box?
+                    This is the idea behind NMS, it looks for <i>overlapping</i> boxes of the <i>same</i> class, and removes
                     all except the highest confidence box. It uses an IOU threshold of 0.5 to determine which boxes overlap.
                 </p>
                 <div class="image-container">
@@ -155,13 +158,13 @@
                     <b>Supervised Pretraining.</b> The authors trained the feature extractor (AlexNet) by first training it
                     on the ImageNet classification task, so the last fully connected layer had 1000 outputs for the 1000 ImageNet classes.
                     To do this, they followed the exact same training procedure from the original Krizhevsky paper and achieved the same results. Next,
-                    they removed the final layer, and replaced it with a fully connected layer with C + 1 classes (+1 for background), and they finetuned
-                    the network with <i>classification</i> on the C + 1 classes from the <i>new object detection dataset</i>. Hang on,
+                    they removed the final layer, and replaced it with a fully connected layer with <code>C + 1</code> classes (+1 for background), and they finetuned
+                    the network with <i>classification</i> on the <code>C + 1</code> classes from the <i>new object detection dataset</i>. Hang on,
                     how did they do classification on an object detection dataset? They used Selective Search on the image to generate
                     proposals, and all proposals that overlapped groundtruth objects by more than an IOU of 0.5, they marked as the
-                    class of the ground truth object. They then cropped them out and warped them up to 227 x 277 and used those as the images for training.
-                    Anything under IOU of 0.5 was marked as background, that is where the C + 1 classes
-                    comes from. Finally they remove that final layer again to get the finetuned feature extractor.
+                    class of the ground truth object. They then cropped them out and warped them up to <code>227 x 277</code> and used those as the images for training.
+                    Anything under IOU of 0.5 was marked as background, that is where the <code>C + 1</code> classes
+                    comes from. Finally they remove that final layer again to get the final finetuned feature extractor.
                     It turns out that this fine tuning step on the same data was essential for making the feature extractor work well.
                 </p>
                 <p>
@@ -172,19 +175,20 @@
                     ground truth box and negatives as under 0.5, but for SVM training, they take only the ground truth box as the positive,
                     and select negatives as those with IOU of less than 0.3. I only wanted to point this out to avoid confusion,
                     the reason for doing it this way is part historical, and part <i>"it just worked well"</i>, there isn't any special
-                    secret. Appendix B in the pack of the R-CNN paper offers a possible explanation.
+                    secret.
                 </p>
                 <p>
                     <b>Bounding Box Regression.</b> R-CNN works just fine without any bounding box regression, but the predicted boxes
                     that come from Selective Search are not always that good. The bounding box regression step takes the 4096-length
                     vectors, and predicts a new set of four numbers for the finetuned bounding box, it does this for every box. To train these linear regressors,
                     they fed it pairs of proposals and ground truth boxes, but you can't just give it any pair, if the target box is the
-                    other side of the image, it doesn't matter how good your regressor is, it can't adjust it that far. So the authors only picked
+                    other side of the image, it doesn't matter how good your regressor is, it can't and shouldn't adjust it that far. So the authors only picked
                     boxes that overlapped the ground truth by 0.7 for training. Yet another training step in our multi-stage training procedure,
                     wouldn't it be great if there was a training procedure that did it all in one go (hint hint)...
                 </p>
                 <p>
-                    There is a technical detail on how the boxes are parameterised, I will cover this in a couple of posts time in Fast R-CNN.
+                    There is a technical detail on how the boxes are parameterised, I will cover this in a couple of posts time
+                    when we talk about Fast R-CNN.
                 </p>
                 <h3>Why SVMs?</h3>
                 <p>
