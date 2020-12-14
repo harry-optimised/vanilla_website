@@ -130,8 +130,8 @@
                 </div>
                 <p>
                     Remember how the Fast R-CNN head received region proposals and feature maps, and it first used an ROI Pooling
-                    layer to warp all projected feature maps into a fixed length vector before doing classification and regression.
-                    Well all those pieces exist here, so <i>you already know how the Detector Head works, it's just the Fast R-CNN head.</i>
+                    layer to warp all projected feature regions into a fixed length vector before doing classification and regression.
+                    Well all those pieces still exist here, so <i>you already know how the Detector Head works, it's just the Fast R-CNN head.</i>
                 </p>
                 <p>
                     Likewise, the backbone is exactly the same as in Fast R-CNN as well, it produces features that are consumed by
@@ -142,7 +142,8 @@
                     There's still a missing piece, if the Region Proposal Network (or <i>RPN</i> as I'll start to call it) is
                     proposing regions for the Detector Network,
                     then <i>what is proposing regions for the Region Proposal Network?</i> You read that right, the RPN is an
-                    object detector as well, it can't just magic proposals from thin air. <i>For now, let's just give it
+                    object detector now, and all the object detectors we've looked at so far used modules such as Selective Search,
+                    it can't just magic proposals from thin air. <i>For now, let's just give it
                     dense proposals.</i> It's not quite as simple as that, we'll come back to it shortly and develop the
                     idea into anchors which is how it actually works.
                 </p>
@@ -178,7 +179,7 @@
                     <p><i>Dense Box Proposals</i></p>
                 </div>
                 <p>
-                    Look at the image above, our goal is to detect the dog. Selective would
+                    Look at the image above, our goal is to detect the dog. Selective Search would
                     propose regions that likely contained objects, hopefully one of them would be the dog, and our network
                     head would classify and finetune it. So with dense boxes, we need to be able to propose boxes that at least
                     get close to containing the dog. But the dog could also be at any position, so we need to be invariant to
@@ -393,6 +394,7 @@
                 <p>
                     Onwards!
                 </p>
+                <p><a href="https://www.harrysprojects.com/articles/maskrcnn.html"/>Next: Mask R-CNN</a></p>
                 <br />
                 <br />
             </div>
