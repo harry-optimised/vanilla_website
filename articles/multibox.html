@@ -20,20 +20,61 @@
 
             <div>
                 <h1>Deep Multi Box</h1>
-                <p><i>??  2020</i></p>
-                <h3>Spatial Pyramid Pooling</h3>
+                <p><i>14th December 2020</i></p>
+                <h3>Welcome</h3>
                 <p>
-                   Class agnostic box prediction. First to define as a regression problem. A bit like RPN.
-                    They post classify, all the clever stuff in the agnostic box prediction.
-                    Is flexible and general.
+                    Welcome to the start of the mini-series for Single Stage Object Detectors, in this series we'll
+                    look at the architectures of YOLO, SSD, and RetinaNet, and how and why they're different to
+                    their two stage cousins. This may be the very
+                    first post you're reading on my website, or perhaps you've already read through the Two Stage
+                    Object Detector series. I am going to assume that you have read through that series, because in the
+                    upcoming posts I will be referring to ideas I've discussed in previous articles and I want to draw
+                    connections between one-stage and two-stage architectures in particular,
+                    I also don't want to be repeating myself. If you're already familiar with architectures like
+                    Fast R-CNN and Faster R-CNN, then you're probably fine to carry on, otherwise please do consider
+                    starting from the beginning.
+                </p>
+                <h3>Orientation</h3>
+                <p>
+                    I'm starting with <a href="https://arxiv.org/abs/1312.2249">Deep Multi Box</a>, which is a very early paper in the field of Deep Object Detection,
+                    you can think of it like the R-CNN equivalent for single stage detectors. It was released in 2013.
+                    The main reason I'm starting here is that it presents a nice and gentle introduction to the architectures
+                    that SSD and YOLO will both build on. Just like we started with R-CNN and then went on to show it's
+                    deficiencies and how later architectures solved them, we'll do the same here for Deep Multi Box.
+                    From now on, I'll refer to it as DMB.
+                </p>
+                <p>
+                    DMB is a single-stage architecture because it doesn't start with Selective Search, or EdgeBoxes,
+                    or any other region proposal mechanism. Much like the Region Proposal Network in Faster-RCNN,
+                    DMB predicts boxes from a set of predefined anchors, except they call them priors and compute
+                    them in a very different way. We'll see how shortly.
+                </p>
+                <p>
+                    DMB predicts class agnostic objects. All that means is you get object box predictions out, but no
+                    class predictions. That's actually a very useful thing to be able to do because it can be trained
+                    to be very general. DMB should be able to detect <i>any and all</i> objects, even if it doesn't
+                    know what class they are. If you think about it, that's exactly what the Region Proposal Network
+                    is doing as well. The term for this is Generic Object Detection, and even though there are
+                    strong parallels between DMB and the Region Proposal Network, DMB were the first to pose this
+                    as a regression problem.
+                </p>
+                <p>
+                    Like my previous posts, I'll start with the architecture of DMB, which is actually very simple.
+                    The clever and more interesting part of this paper is in the training step, which is poses as a
+                    bipartite matching problem. Finally we'll look at a few tricks they introduced to make it work
+                    and then wrap up by considering the link between this architecture and two-stage architectures.
+                </p>
+                <h3>The Architecture</h3>
+                <p>
                     OUtputs fixed number of boxes and a score for each box on objectness.
                     Encode box and objecntess as neurons in the last layer. Encode upper left and lower right as
                     four neurons, normalised wrt image dimensions. Confidence as single node value. Sigmoided.
                     All box locations in one linear layer. All confidences in another sigmoid layer. Both
                     branch off the last hidden layer.
                     Produce K boxes. Can also use confidence scores to NMS the results.
-                    Can then do classification on those boxes as another step.
                 </p>
+                <h3>Training</h3>
+                <p>Bipartite Matching, The Loss</p>
                 <p>
                     Training. Optimise only the predicted boxes that match best the ground truth ones.
                     Minimise confidences of others.
@@ -42,8 +83,9 @@
                     Box components just minimises the L2 distance between matched boxes.
                     Confidence component maximises confidence of matches components and minimises it otherwise.
                 </p>
+                <h3>Tricks</h3>
+                <p>Clustering and Priors.</p>
                 <p>
-                    Details.
                     The cluster the ground truth locations to find K priors one for
                     each box, this is like anchor boxes. Where does each box come from otherwise?
                     The box locations are therefore parameterised offsets to these priors.
@@ -51,12 +93,28 @@
                     locations with K predictions, they find the best match between K priors and
                     the ground truth. Each K box is then parameterised from it's prior.
                 </p>
+                <h3>From Class Agnostic Boxes to Full Object Detection</h3>
                 <p>
-                    Sampling
-
+                    DMB produces a set of <code>K</code> boxes that likely contain objects. But it doesn't
+                    actually classify those boxes itself. The paper proposes another, separate network to do this,
+                    which could be any type of classifier, although they used a DNN in their experiments. So the process
+                    is: use DMB to process an image and generate a set of candidate objects, each with an
+                    objectness score. Filter those objects so that only those with high objectness scores remain, crop
+                    those boxes out of the image and pass them through a CNN classifier to predict a class.
                 </p>
-
-                
+                <p>
+                    This actually plants us firmly back into the land of two-stage object detectors, because we're
+                    doing region proposal followed by classification. Hopefully this is ringing bells for you, does
+                    it sound a bit like a less performant version of Faster R-CNN?
+                </p>
+                <p>
+                    As we continue down the path of single stage detectors, we'll see how the classification and
+                    ultimately the regression component as well are both wrapped into the same box proposal step that
+                    DMB is doing. So we'll end up being a one-stage architecture in the end. This sets us
+                    up nicely for the next post. Quick, crack on with the next ones in this series, after all, You
+                    Only Live Once!
+                </p>
+                <p><a href="">Next: YOLO V1</a></p>
                 <br />
                 <br />
             </div>
