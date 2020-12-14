@@ -290,8 +290,10 @@
                     R-CNN trained linear regressors, Fast R-CNN uses a fully connected layer, but in both cases, they are
                     regressing, but regressing to what? Region proposals from Selective
                     Search are defined in pixels, usually the <code>X</code> and <code>Y</code> center and the width and height.
-                    The grouth truth boxes are defined in the same way, so can we not just regress the pixel coordinates of the
-                    region proposal to the pixel coordinates of the ground truth box? Well, you <i>could</i> do that, but it
+                    The grouth truth boxes are defined in the same way. What we want to be able to do is map our proposed box coordinates
+                    to the ground truth box coordinates, how can we do that with a neural network? Could we just predict an offset for
+                    in pixels for each of <code>X</code>, <code>Y</code>, <code>W</code>, and <code>H</code>?
+                    Well, you <i>could</i> do that, but it
                     suffers from a few problems.
                 </p>
                 <p>
