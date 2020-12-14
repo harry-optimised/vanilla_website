@@ -60,7 +60,7 @@
                 <p>
                     Let me give you some intuition about this step. As I've currently described the architecture, it is <i>this </i>
                     step that actually produces the boxes, the rest of the architecture just classifies and adjusts them, so it is <i>this </i>
-                    step that bottlenecks your <i>recall</i> performance (remember that one?). In
+                    step that bottlenecks your <i>recall</i> performance. In
                     other words, if the image has a certain object in it and the region proposal step <i>does not</i> manage to
                     produce a region for that object, R-CNN will <i>not</i> detect it. You might also be wondering whether
                     it bottlenecks the <i>localisation</i> performance as well, in other words, what if the box does not fit the object very well?
@@ -93,7 +93,7 @@
                     vector representation that can then be used to do classification. Note that in R-CNN, this network does <i>not </i>
                     actually do the classification itself, in other words, the final layer has 4096 outputs for the vector. For completeness,
                     if you <i>did</i> want this network to also do the classification, you could add <i>another</i> fully connected
-                    layer than went from 4096 down to C outputs, where C is the number of classes. I'll explain in a minute why
+                    layer than went from 4096 down to <pre>C</pre> outputs, where <pre>C</pre> is the number of classes. I'll explain in a minute why
                     the authors decided not to do that.
                 </p>
                 <p>

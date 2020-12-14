@@ -1,0 +1,68 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Harry's Projects</title>
+        <meta name="description" content="">
+        <link rel="icon" type="image/ico" href="../images/favicon.ico">
+        <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+        <link rel=“canonical” href=“https://www.harrysprojects.com/articles/multibox.html” />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="../js/Navbar.js" type="text/javascript" defer></script>
+    </head>
+    <body>
+        <div class="page-container">
+
+            <nav-bar></nav-bar>
+
+            <div>
+                <h1>Deep Multi Box</h1>
+                <p><i>??  2020</i></p>
+                <h3>Spatial Pyramid Pooling</h3>
+                <p>
+                   Class agnostic box prediction. First to define as a regression problem. A bit like RPN.
+                    They post classify, all the clever stuff in the agnostic box prediction.
+                    Is flexible and general.
+                    OUtputs fixed number of boxes and a score for each box on objectness.
+                    Encode box and objecntess as neurons in the last layer. Encode upper left and lower right as
+                    four neurons, normalised wrt image dimensions. Confidence as single node value. Sigmoided.
+                    All box locations in one linear layer. All confidences in another sigmoid layer. Both
+                    branch off the last hidden layer.
+                    Produce K boxes. Can also use confidence scores to NMS the results.
+                    Can then do classification on those boxes as another step.
+                </p>
+                <p>
+                    Training. Optimise only the predicted boxes that match best the ground truth ones.
+                    Minimise confidences of others.
+                    Therefore there is an assignment step.
+                    Bipartite matching. Contains a confidence and box components.
+                    Box components just minimises the L2 distance between matched boxes.
+                    Confidence component maximises confidence of matches components and minimises it otherwise.
+                </p>
+                <p>
+                    Details.
+                    The cluster the ground truth locations to find K priors one for
+                    each box, this is like anchor boxes. Where does each box come from otherwise?
+                    The box locations are therefore parameterised offsets to these priors.
+                    The priors are also used in the matching process. Instead of matching N ground truth
+                    locations with K predictions, they find the best match between K priors and
+                    the ground truth. Each K box is then parameterised from it's prior.
+                </p>
+                <p>
+                    Sampling
+
+                </p>
+
+                
+                <br />
+                <br />
+            </div>
+
+        </div>
+    </body>
+    <footer>
+    </footer>
+</html>
