@@ -39,7 +39,7 @@
                     layer between the final convolutional layer and the fully connected layer that removes this constraint.
                 </p>
                 <p>
-                    It's called a spatial pyramid pooling layer and here's how it works. Refer to the image below this paragraph, 
+                    It's called a spatial pyramid pooling layer and here's how it works. Refer to the image below,
                     I'll explain it from the bottom of the image up.
                     Once you've passed your
                     image through the convolutional layers, you get a set of feature maps, for example, let's say we get 256 feature maps. You max
@@ -72,15 +72,14 @@
                     new idea to lots of different domains and showing how it improves performance in all of them, including
                     R-CNN! They make a very important observation, they recognise that the speed bottle neck in
                     R-CNN is because the CNN is applied to every <i>image</i> region (all 2000), meaning it is run 2000 times.
-                    But they realised that they could run the CNN <i>once</i> on the entire image to produce a set of feature
-                    maps (remember no fully connected layers for the feature extractor), and <i>then</i> apply their
+                    But they realised that they could run the CNN feature extractor <i>once</i> on the entire image to produce a set of feature
+                    maps, and <i>then</i> apply their
                     SPP-Pooling layer to each region.
                 </p>
                 <p>
                     Let me repeat that again, R-CNN applies the CNN to every <i>image region</i> in the original image. But
                     SPP-Net applies the CNN once to produce the feature maps, and then applies
-                    <i> only the SPP layer and fully connected layers to each feature region.</i> Note the distinction between
-                    feature region and image region, there is no difference in the way spatial pyramid pooling is actually done.
+                    <i> only the SPP layer and fully connected layers to each feature region.</i>
                     This process is illustrated in the image below.
                 </p>
                 <div class="image-container">
@@ -88,24 +87,17 @@
                     <p><i>This is Figure 5 from the SPP-Net paper, credit goes to the paper authors.</i></p>
                 </div>
                 <p>
-                    Why is this important? Two reasons, the first is that by doing a spatial pyramid pool of the region, you
+                    Why is this important? Two reasons, the first is that by doing a spatial pyramid pool of the region, rather
+                    than simply flattening it, you
                     get a better feature vector because it's considering multiple scales. Second, by running the pooling
                     on feature map regions, instead of image regions, you only run the CNN once, which makes your
-                    network about 2000 faster, not bad. (In practice, for various reasons, they saw a speed up of about x200).
-                </p>
-                <p>
-                    A final nuance that might bugging you, what if the bins don't line up with the image (or region)? What if
-                    the region in the feature map doesn't perfectly split into 16 bins? The short answer is they interpolate,
-                    the long answer is it's a bit fiddly, and you don't need to understand the technical details other than
-                    it's possible, all details are explained in the paper.
+                    network about 2000 times faster, not bad. (In practice, for various reasons, they saw a speed up of about 200).
                 </p>
                 <h3>Next Up</h3>
                 <p>
                     With that, we're ready to tackle Fast R-CNN. See you in the next post.
                 </p>
-
-
-                
+                <p><a href="https://www.harrysprojects.com/articles/fastrcnn.html"/>Next: Fast R-CNN</a></p>
                 <br />
                 <br />
             </div>
