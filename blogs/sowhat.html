@@ -3,8 +3,11 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Harry's Projects</title>
-        <meta name="description" content="">
+        <title>So What</title>
+        <meta name="description" content="A system for triaging articles to stay up to date in your field.">
+        <meta name="author" content="Harry Turner">
+        <meta name="keywords" content="so what, articles, triage">
+
         <link rel="icon" type="image/ico" href="../images/favicon.ico">
         <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -187,7 +190,23 @@
                     my intuition and instinct for directions of technology, rather than try to memorise the specifics. I can always
                     go back and find the specific article if I need to.
                 </p>
-                
+                <br />
+                <div id="disqus_thread"></div>
+                <script>
+                    var disqus_config = function () {
+                    this.page.url = "https://www.harrysprojects.com/blogs/sowhat.html";
+                    this.page.identifier = "sowhat";
+                    };
+
+                    (function() { // DON'T EDIT BELOW THIS LINE
+                    var d = document, s = d.createElement('script');
+                    s.src = 'https://harrysprojects-com.disqus.com/embed.js';
+                    s.setAttribute('data-timestamp', +new Date());
+                    (d.head || d.body).appendChild(s);
+                    })();
+                </script>
+                <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
                 <br />
                 <br />
             </div>
