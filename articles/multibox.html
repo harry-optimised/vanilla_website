@@ -3,8 +3,10 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Harry's Projects</title>
-        <meta name="description" content="">
+        <title>Deep Multi Box</title>
+        <meta name="description" content="The Deep Multi Box architecture and how it works.">
+        <meta name="author" content="Harry Turner">
+        <meta name="keywords" content="learn, tutorial, paper, machine learning, deep learning, object detection, deep multi box, bipartite matching, non maximum suppression, single stage detector, feature extraction">
         <link rel="icon" type="image/ico" href="../images/favicon.ico">
         <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,6 +14,17 @@
         <link rel=“canonical” href=“https://www.harrysprojects.com/articles/multibox.html” />
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="../js/Navbar.js" type="text/javascript" defer></script>
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-180754451-1');
+        </script>
     </head>
     <body>
         <div class="page-container">
@@ -20,82 +33,254 @@
 
             <div>
                 <h1>Deep Multi Box</h1>
-                <p><i>14th December 2020</i></p>
-                <h3>Welcome</h3>
+                <p><i>10th January 2021</i></p>
+                <h3>Welcome to this Mini Series</h3>
                 <p>
-                    Welcome to the start of the mini-series for Single Stage Object Detectors, in this series we'll
+                    Welcome to the start of the mini-series for single stage object detectors, in this series we'll
                     look at the architectures of YOLO, SSD, and RetinaNet, and how and why they're different to
-                    their two stage cousins. This may be the very
-                    first post you're reading on my website, or perhaps you've already read through the Two Stage
-                    Object Detector series. I am going to assume that you have read through that series, because in the
+                    their two stage cousins. This may be the
+                    first post you're reading on my website, or perhaps you've already read through the
+                    <a href="https://www.harrysprojects.com/machine_learning.html">two-stage object detector series</a>.
+                    Either way, I will assume that you are familiar with two-stage detectors, because in the
                     upcoming posts I will be referring to ideas I've discussed in previous articles and I want to draw
-                    connections between one-stage and two-stage architectures in particular,
-                    I also don't want to be repeating myself. If you're already familiar with architectures like
-                    Fast R-CNN and Faster R-CNN, then you're probably fine to carry on, otherwise please do consider
-                    starting from the beginning.
+                    connections between one-stage and two-stage architectures in particular. If you're already
+                    familiar with architectures like <a href="https://www.harrysprojects.com/articles/fastrcnn.html">Fast R-CNN</a>
+                    and <a href="https://www.harrysprojects.com/articles/fasterrcnn.html">Faster R-CNN</a>, then you're
+                    probably fine to carry on, otherwise please do consider starting from the beginning.
                 </p>
                 <h3>Orientation</h3>
                 <p>
-                    I'm starting with <a href="https://arxiv.org/abs/1312.2249">Deep Multi Box</a>, which is a very early paper in the field of Deep Object Detection,
-                    you can think of it like the R-CNN equivalent for single stage detectors. It was released in 2013.
-                    The main reason I'm starting here is that it presents a nice and gentle introduction to the architectures
-                    that SSD and YOLO will both build on. Just like we started with R-CNN and then went on to show it's
-                    deficiencies and how later architectures solved them, we'll do the same here for Deep Multi Box.
+                    I'm starting with <a href="https://arxiv.org/abs/1312.2249">Deep Multi Box</a>, which is a very
+                    early paper in the field of deep object detection, released in 2013.
+                    I'm starting here because it presents a gentle introduction to the type of architecture
+                    that SSD and YOLO both build upon. Just like we started with <a href="https://www.harrysprojects.com/articles/rcnn.html">
+                    R-CNN</a> and then went on to
+                    more complex architectures we'll do the same here for Deep Multi Box.
                     From now on, I'll refer to it as DMB.
                 </p>
                 <p>
-                    DMB is a single-stage architecture because it doesn't start with Selective Search, or EdgeBoxes,
-                    or any other region proposal mechanism. Much like the Region Proposal Network in Faster-RCNN,
-                    DMB predicts boxes from a set of predefined anchors, except they call them priors and compute
-                    them in a very different way. We'll see how shortly.
+                    DMB is a single-stage architecture because it predicts boxes in one pass - image in, box coordinates out.
+                    It doesn't start with Selective Search, or EdgeBoxes,
+                    or any other region proposal mechanism. Like the Region Proposal Network in Faster R-CNN,
+                    DMB predicts boxes from a set of predefined anchors, except in the paper they are called priors and are computed
+                    in a different way. We'll see how shortly.
                 </p>
                 <p>
-                    DMB predicts class agnostic objects. All that means is you get object box predictions out, but no
-                    class predictions. That's actually a very useful thing to be able to do because it can be trained
-                    to be very general. DMB should be able to detect <i>any and all</i> objects, even if it doesn't
+                    DMB detects class agnostic objects. That means that you get box predictions out, but no
+                    class predictions. That's useful because it can be made very general - DMB should be able to
+                    detect <i>any and all</i> objects, even if it doesn't
                     know what class they are. If you think about it, that's exactly what the Region Proposal Network
-                    is doing as well. The term for this is Generic Object Detection, and even though there are
-                    strong parallels between DMB and the Region Proposal Network, DMB were the first to pose this
-                    as a regression problem.
+                    does in two stage detectors. This is called Generic Object Detection.
                 </p>
                 <p>
-                    Like my previous posts, I'll start with the architecture of DMB, which is actually very simple.
-                    The clever and more interesting part of this paper is in the training step, which is poses as a
-                    bipartite matching problem. Finally we'll look at a few tricks they introduced to make it work
-                    and then wrap up by considering the link between this architecture and two-stage architectures.
+                    I'll start with the architecture of DMB, then introduce the clever and more interesting part of
+                    this paper which is the training step. Finally we'll look at a few tricks that the authors introduced
+                    to improve training convergence, and then wrap up by considering the link between this architecture and two-stage architectures.
                 </p>
                 <h3>The Architecture</h3>
                 <p>
-                    OUtputs fixed number of boxes and a score for each box on objectness.
-                    Encode box and objecntess as neurons in the last layer. Encode upper left and lower right as
-                    four neurons, normalised wrt image dimensions. Confidence as single node value. Sigmoided.
-                    All box locations in one linear layer. All confidences in another sigmoid layer. Both
-                    branch off the last hidden layer.
-                    Produce K boxes. Can also use confidence scores to NMS the results.
+                    The authors describe the architecture as a Deep Neural Network that outputs a fixed number of
+                    \( \color{#e83e8c} K \) box predictions. They encode the \( \color{#e83e8c} k^{th} \) box and it's associated
+                    confidence values as two fully connected layers that both branch off of the last network layer.
+                    The box prediction layer encodes the top left and bottom right of each box, and therefore predicts
+                    four numbers for each of the \( \color{#e83e8c} K \) boxes, producing \( \color{#e83e8c} 4K \) outputs. The predicted
+                    numbers represent the position of each coordinate in the image normalised between 0 and 1 - for
+                    example, the coordinate <code>(0.5, 0.5)</code> is the point in the very
+                    middle of the image.
                 </p>
-                <h3>Training</h3>
-                <p>Bipartite Matching, The Loss</p>
                 <p>
-                    Training. Optimise only the predicted boxes that match best the ground truth ones.
-                    Minimise confidences of others.
-                    Therefore there is an assignment step.
-                    Bipartite matching. Contains a confidence and box components.
-                    Box components just minimises the L2 distance between matched boxes.
-                    Confidence component maximises confidence of matches components and minimises it otherwise.
+                    The confidence branch predicts a single confidence value for each box which represents the
+                    probability of the box containing an object. You can think of this representing the <i>objectness</i>
+                    of the box. Boxes that contain well defined objects, like a dog, or a car, should have high confidence
+                    values. This layer has a sigmoid activation to ensure each confidence is between 0 and 1.
+                </p>
+                <p>
+                    The authors don't say much about the rest of the architecture however I would expect the feature
+                    extractor to be a convolutional backbone just like standard image classifiers.  Here's what I
+                    suspect the architecture looks like.
+                </p>
+                <div class="image-container">
+                    <img src="../images/articles/multibox/architecture.png"/>
+                    <p><i>The Deep Multi Box Network Architecture. K = 3 in this simplified view.</i></p>
+                </div>
+                <p>
+                    The authors state that they sometimes perform Non Maximum Suppression to reduce the number of boxes,
+                    however the network itself always produces \( \color{#e83e8c} K \) box predictions. From now on, I will
+                    refer to a <i>box prediction</i> to mean the combination of the predicted coordinates, along with
+                    the predicted confidence value, and I'll refer to a single box prediction as \( \color{#e83e8c} k \),
+                    from the set of \( \color{#e83e8c} K \).
+                </p>
+                <p>
+                    Before we move onto network training, I want to take a second to point out how the object detection
+                    problem has been framed. Using standard fully connected layers, the authors
+                    frame the problem as one of regression, where the outputs of the fully connected layer
+                    are interpretted as the coordinates of each box. The number of boxes is hard wired into the network,
+                    it must always produce \( \color{#e83e8c} K \) boxes. Normally this would be a problem because there usually
+                    won't be \( \color{#e83e8c} K \) actual objects in the image and we wouldn't know which predictions to
+                    discard, but by predicting an object-ness score for each box, we can throw away those boxes with
+                    low scores. The trick is make sure that the predictions that don't correspond to objects
+                    have low confidence scores. The authors managed this by designing a clever loss function.
+                </p>
+
+                <h3>Training</h3>
+                <p>
+                    For a single image input, the network outputs \( \color{#e83e8c} K \) box predictions. The problem is,
+                    what if there aren't \( \color{#e83e8c} K \) objects in the image? We either won't have enough boxes as
+                    output, or we have too many. We can constrain the problem by making \( \color{#e83e8c} K \) really large,
+                    say 200. Now we just have to handle the case of too many predicted boxes.
+                </p>
+                <p>
+                    Let's think about what we want for a minute. Imagine the image has \( \color{#e83e8c} G \) ground truth boxes
+                    within it, but we're predicting \( \color{#e83e8c} K \) boxes. We want to only select and use the subset
+                    of \( \color{#e83e8c} K \) that we need to find all of the \( \color{#e83e8c} G \) boxes. So we've got a matching problem.
+                    The authors solved this by assigning one prediction to each ground truth box - that is, one
+                    \( \color{#e83e8c} k \) to each \( \color{#e83e8c} g \), and leaving the rest of them unmatched. We'll call these
+                    \( \color{#e83e8c} k, g \) pairs, <i>matched pairs</i> and we'll discover how we find this
+                    matching in a second. We're almost ready to state our loss function, but first let's describe at a
+                    high level what we want it to do.
+                </p>
+                <p>
+                    Assuming that \( \color{#e83e8c} K \) is bigger than \( \color{#e83e8c} G \), and that we've done our matching, we
+                    now have a set of \( \color{#e83e8c} G \) matched pairs, and some left over \( \color{#e83e8c} k \)'s. <i>For those
+                    pairs that are matched</i> we want to minimise the error between the \( \color{#e83e8c} k \) box coordinates
+                    and \( \color{#e83e8c} g \) box coordinates, we also want to maximise the confidence values of those
+                    predictions. For the remaining unmatched \( \color{#e83e8c} k \)'s we want to minimise the
+                    confidence values and we'll ignore the coordinate predictions. Now let's see how this is stated
+                    in the paper. Here is the total loss we'll minimise to train our network.
+                </p>
+                <div class="image-container">
+                    </br>
+                    <span>\( \color{#e83e8c} F(x, l, c) = \alpha F_{match}(x, l) + F_{conf}(x, c) \)</span>
+                    <p><i>The equation for total loss.</i></p>
+                </div>
+                <p>
+                    The equation above says the total loss, which is a function of \( \color{#e83e8c} x \), \( \color{#e83e8c} l \), and
+                    \( \color{#e83e8c} c \) is some portion of the matching loss plus the confidence
+                    loss. We'll look at \( \color{#e83e8c} x \) in a second, but think of it as the particular assignment of
+                    matched pairs. The \( \color{#e83e8c} l \) represents the coordinates of the boxes, and \( \color{#e83e8c} c \)
+                    represents the confidence. So overall, the loss is a function of the position and
+                    confidence of the predicted boxes, given some particular matching.
+                </p>
+                <p>
+                    The matching loss minimises the error between matched box coordinates, and the confidence
+                    loss maximises the confidence of the matched boxes whilst minimising the confidence of the others.
+                    The alpha is simply a parameter that balances the two components as they may not always be on the
+                    same scale, this is usually found empirically. Now let's look at each component in a bit more detail,
+                    starting with the confidence loss.
+                </p>
+                <div class="image-container">
+                    </br>
+                    <span>\( \color{#e83e8c} F_{conf}(x, c) = -\sum_{k,g}x_{kg}log(c_{i}) - \sum_{k}(1-\sum_{g}x_{kg})log(1-c_{i}) \)</span>
+                    <p><i>The confidence component of the loss.</i></p>
+                </div>
+                <p>
+                    At first glance this looks complicated, but here's how to think about it. Remember that \( \color{#e83e8c} k \)
+                    represents one of the \( \color{#e83e8c} K \) predicted boxes, and \( \color{#e83e8c} g \) represents one of the
+                    \( \color{#e83e8c} G \) ground truth boxes. \( \color{#e83e8c} x_{kg} \) is a special operator that evaluates
+                    to 1 if \( \color{#e83e8c} k \) is matched with \( \color{#e83e8c} g \) and 0 otherwise. We'll use this operator
+                    as a way of selecting matched pairs.
+                </p>
+                <p>
+                    Now, the \( \color{#e83e8c} \sum_{k,g}x_{kg} \) effectively loops over all matched pairs. To see why, note that it will loop over
+                    all combinations of \( \color{#e83e8c} k \) and \( \color{#e83e8c} g \), but the \( \color{#e83e8c} x_{kg} \) will
+                    only evaluate to 1 when \( \color{#e83e8c} k \) and \( \color{#e83e8c} g \) are matched. Therefore this whole
+                    expression is only evaluated for the matched pairs. What is the expression being evaluated?
+                    It's the \( \color{#e83e8c} -log(c_{k}) \) which is minimised when \( \color{#e83e8c} c_{k} \) is large.
+                    So minimising this error term forces the confidences of the matched \( \color{#e83e8c} k \)'s to be large,
+                    which is exactly what we want.
+                </p>
+                <p>
+                    Now let's look at the other part, the logic is the same. It helps to read this one backwards,
+                    ignore the sum term for a second and look at the log term, it's \( \color{#e83e8c} -log(1-c_{k}) \),
+                    it will be minimised by minimising the confidence. Remember that we want our loss function to drive
+                    the confidence of all unmatched \( \color{#e83e8c} k \)'s to 0. Therefore the sum term in front of this log term is
+                    selecting all the unmatched \( \color{#e83e8c} k \)'s by evaluating to 1 if \( \color{#e83e8c} k \) is unmatched and 0
+                    otherwise. Overall, this term drives the confidence of all unmatched predictions to 0.
+                </p>
+                <div class="image-container">
+                    </br>
+                    <span>\( \color{#e83e8c} F_{match}(x, l) = \frac{1}{2} \sum_{k,g} x_{kg}\left \| l_{k} -l_{g} \right \|_{2}^{2} \)</span>
+                    <p><i>The matching (regression) component of the loss.</i></p>
+                </div>
+                <p>
+                    The matching loss is easier, it is simply the sum of squared errors of all the matched predictions.
+                    Note the \( \color{#e83e8c} x_{kg} \) term in there which zeros out the expression for all unmatched pairs.
+                </p>
+
+                <h3>Bipartite matching.</h3>
+                <p>
+                    The only thing missing is how to get the matches in the first place, everything above assumes
+                    that the matches have already been found. Here is how that matching is found. I want to be clear
+                    on terms, when I say <i>matching</i>, I mean that for every \( \color{#e83e8c} g \), there is one
+                    and only one assigned \( \color{#e83e8c} k \), and all the remaining \( \color{#e83e8c} k \)'s have no
+                    matches. Notice that there are many ways to match things up.
+                </p>
+                <p>
+                    For any given matching,
+                    the loss can be computed using the loss function, and you'll get a number out, for example it might be 2.0. If you
+                    randomly pick two \( \color{#e83e8c} k \)'s and swap their assigned \( \color{#e83e8c} g \)'s, then you'll have
+                    changed the matching loss, so you'll get a different number out, for example now it might be 1.6.
+                    If you search through all combinations of matches and evaluate the loss each time, you'll
+                    find that there is an assigment that will give you the smallest loss. This is defined as the best match.
+                </p>
+                <p>
+                    The above algorithm for matching feels a bit odd, it feels like we're minimising the loss. Well we are,
+                    but this is <i>not</i> the loss minimisation that trains the neural network, we do that next. All this does
+                    is find the match that has the minimal loss by searching through all possible combinations of matches.
+                    Once we have found this matching, <i>we hold the matches constant</i> which means our loss function is now
+                    defined with respect to the confidence values and box coordinates only, and we can back propagate through
+                    our network as normal. You can see this in the loss function above, it's defined with respect to
+                    \( \color{#e83e8c} x \), \( \color{#e83e8c} l \), and \( \color{#e83e8c} c \).
+                    The \( \color{#e83e8c} x \) is the particular matching, once we've done the bipartite matching this
+                    becomes fixed and effectively dissapears from our loss function.
+                </p>
+                <p>
+                    It might feel like exhaustively searching through all possible matches is an expensive operation. In practice
+                    it's not too bad. The \( \color{#e83e8c} G \) is usually small and we're not searching through
+                    every possible permutation as only one \( \color{#e83e8c} g \) can be assigned to one \( \color{#e83e8c} k \)
+                    at any one time.
                 </p>
                 <h3>Tricks</h3>
-                <p>Clustering and Priors.</p>
                 <p>
-                    The cluster the ground truth locations to find K priors one for
-                    each box, this is like anchor boxes. Where does each box come from otherwise?
-                    The box locations are therefore parameterised offsets to these priors.
-                    The priors are also used in the matching process. Instead of matching N ground truth
-                    locations with K predictions, they find the best match between K priors and
-                    the ground truth. Each K box is then parameterised from it's prior.
+                    Everything mentioned so far will work as expected, however the paper mentions a few tricks that
+                    speed up convergence and produce better detection results.
+                </p>
+                <p>
+                    The first is that they cluster the ground truth boxes. This means that they perform K-means clustering
+                    on the ground truth boxes to find \( \color{#e83e8c} K \) average boxes, remember that
+                    \( \color{#e83e8c} K \) is 200 in this paper. Each of these \( \color{#e83e8c} K \) clustered boxes
+                    is called a prior, and intuitively you can think of it as a sensible default starting location for
+                    a box, given the training data. Why does this make sense as a good thing to do? Well the alternative
+                    is to assume no prior (e.g a uniform prior). Imagine that I asked you to predict a box, but I didn't show
+                    you the image. What's the best thing you can do? It's to guess the average box, there's nothing else
+                    you can do because you don't know what the image is. These priors are like starting from the average box,
+                    except it allows the network to start from multiple average boxes, \( \color{#e83e8c} K \) of them in this case. These are the priors.
+                </p>
+                <p>
+                    The network then learns a residual to these priors.
+                    If you've read the post on <a href="https://www.harrysprojects.com/articles/fastrcnn.html">Fast R-CNN</a>
+                    this should be familiar, it's parameterising the output of the network
+                    with respect to an anchored box. In this case, the anchored box is one of the priors found through K-means.
+                    See the Fast R-CNN post for an in-depth explanation of how this parameterisation is done, but the gist of it is that
+                    the network doesn't output coordinates with respect to the image, but instead a shift and scale that would <i>map</i>
+                    the prior to the right size and position. (It doesn't say in the paper how they actually parameterise the
+                    box, but I assume it's something along these lines).
+                </p>
+                <p>
+                    As well as learning residuals, the priors are used during the matching process. The training
+                    process therefore goes something like this.
+                    During a training step, the network is presented with \( \color{#e83e8c} G \) ground truth boxes. We already
+                    have the \( \color{#e83e8c} K \) priors, because these are computed before the training began. We first match
+                    the \( \color{#e83e8c} G \) boxes against the \( \color{#e83e8c} K \) priors using the bipartite matching method above.
+                    We then minimse the weights of the network using the loss function. Any \( \color{#e83e8c} k \)'s
+                    not matched to a \( \color{#e83e8c} g \) will have their confidence minimised and
+                    the regression loss will be ignored. Any that <i>were</i> matched will have their
+                    confidence maximised and their coordinate outputs will be regressed to the target shift and scale
+                    required to map the prior onto the ground truth box.
                 </p>
                 <h3>From Class Agnostic Boxes to Full Object Detection</h3>
                 <p>
-                    DMB produces a set of <code>K</code> boxes that likely contain objects. But it doesn't
+                    DMB produces a set of \( \color{#e83e8c} K \) boxes that likely contain objects. But it doesn't
                     actually classify those boxes itself. The paper proposes another, separate network to do this,
                     which could be any type of classifier, although they used a DNN in their experiments. So the process
                     is: use DMB to process an image and generate a set of candidate objects, each with an
@@ -105,16 +290,32 @@
                 <p>
                     This actually plants us firmly back into the land of two-stage object detectors, because we're
                     doing region proposal followed by classification. Hopefully this is ringing bells for you, does
-                    it sound a bit like a less performant version of Faster R-CNN?
+                    this approach sound a bit like a less performant version of Faster R-CNN?
                 </p>
                 <p>
                     As we continue down the path of single stage detectors, we'll see how the classification and
                     ultimately the regression component as well are both wrapped into the same box proposal step that
                     DMB is doing. So we'll end up being a one-stage architecture in the end. This sets us
-                    up nicely for the next post. Quick, crack on with the next ones in this series, after all, You
-                    Only Live Once!
+                    up nicely for the next post.
                 </p>
-                <p><a href="">Next: YOLO V1</a></p>
+                <p>Next: YOLO V1 (Coming Soon)</p>
+                <br />
+                <div id="disqus_thread"></div>
+                <script>
+                    var disqus_config = function () {
+                    this.page.url = "https://www.harrysprojects.com/blogs/rcnn.html";
+                    this.page.identifier = "rcnn";
+                    };
+
+                    (function() { // DON'T EDIT BELOW THIS LINE
+                    var d = document, s = d.createElement('script');
+                    s.src = 'https://harrysprojects-com.disqus.com/embed.js';
+                    s.setAttribute('data-timestamp', +new Date());
+                    (d.head || d.body).appendChild(s);
+                    })();
+                </script>
+                <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
                 <br />
                 <br />
             </div>
