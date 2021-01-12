@@ -1,0 +1,92 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>YOLO V1</title>
+        <meta name="description" content="The R-CNN architecture and how it works.">
+        <meta name="author" content="Harry Turner">
+        <meta name="keywords" content="learn, tutorial, paper, machine learning, deep learning, object detection, r-cnn, selective search, svm, linear gression, non maximum suppression, region proposals, feature extraction, classification">
+        <link rel="icon" type="image/ico" href="../images/favicon.ico">
+        <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+        <link rel=“canonical” href=“https://www.harrysprojects.com/articles/rcnn.html” />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="../js/Navbar.js" type="text/javascript" defer></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-180754451-1');
+        </script>
+    </head>
+    <body>
+        <div class="page-container">
+
+            <nav-bar></nav-bar>
+
+            <div>
+                <h1>YOLO V1</h1>
+                <p><i>11th January 2021</i></p>
+                <h3>You Only Look Once</h3>
+                <p>
+                    Intro. Extremely fast. 45fps on a titan X. Fast YOLO runs at 150fps. Realtime processing is
+                    actually quite a big deal.
+                </p>
+                <h3>From Multi Box to YOLO</h3>
+                <p>
+                    In the previous post I introduced <a href="https://www.harrysprojects.com/articles/multibox.html">
+                    Deep Multi Box</a>. Basically just adds classes, that's it.
+                </p>
+                <h3>The Architecture</h3>
+                <p>
+                   ...
+                </p>
+                <h3>Training</h3>
+                <p>
+                   ...
+                </p>
+                <h3>Comparisons with Two-Stage Architectures</h3>
+                <p>
+                    Trained end to end, all done in one pass, simpler to train and run, don't need to optimise different
+                    parts. Theres always something to be said for simplicity.
+
+                    Reasons globally about an image, encodes contextual information about classes, there makes fewer
+                    background errors compared to region based and sliding window approaches which are local methods.
+
+                    More generaliseable.. why?
+
+                    Not as accurate, why? Course spatial localisation. Can't localise may small objects near to one
+                    another.
+                </p>
+
+                <br />
+                <div id="disqus_thread"></div>
+                <script>
+                    var disqus_config = function () {
+                    this.page.url = "https://www.harrysprojects.com/blogs/yolov1.html";
+                    this.page.identifier = "yolov1";
+                    };
+
+                    (function() { // DON'T EDIT BELOW THIS LINE
+                    var d = document, s = d.createElement('script');
+                    s.src = 'https://harrysprojects-com.disqus.com/embed.js';
+                    s.setAttribute('data-timestamp', +new Date());
+                    (d.head || d.body).appendChild(s);
+                    })();
+                </script>
+                <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+                <br />
+                <br />
+            </div>
+
+        </div>
+    </body>
+    <footer>
+    </footer>
+</html>
