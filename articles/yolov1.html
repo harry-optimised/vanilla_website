@@ -33,7 +33,7 @@
 
             <div>
                 <h1>YOLO V1</h1>
-                <p><i>11th January 2021</i></p>
+                <p><i>16th January 2021</i></p>
                 <h3>You Only Look Once</h3>
                 <p>
                     YOLO (You Only Look Once) is a popular family of single-stage object
@@ -185,6 +185,26 @@
                     the predicted boxes become specialised. So one box might
                     learn to find big things, the other might learn to find small things, this may help the network generalise
                     to other domains.
+                </p>
+                <p>
+                    To wrap this section up, I want to point out two very important differences between the approach
+                    that YOLO has taken, and the anchor boxes in the Region Proposal Network. The first is that anchors in
+                    the RPN actually refer to the nine different aspect ratios and scales from a single location. In other
+                    words, each position in the RPN predicts nine different boxes from nine different prior widths and heights.
+                    In contrast, it's as if YOLO has two anchors at each position, <i>but they have the same width and height.</i>
+                    YOLO does not introduce and variations in aspect ratio or size into the anchor boxes.
+                </p>
+                <p>
+                    The second important difference is that because YOLO is fully connected, it must learn where the anchor boxes
+                    are in the first place. To see what I mean by consider this. The RPN predicts boxes by convolving a convolutional
+                    filter around a feature map. At each position, the filter predicts box offsets. If you initialise the weights of
+                    that filter to zero such that the output offsets were zero, then when you convolved the filter around the
+                    feature map it would predict the set of anchor boxes that currently cover the image. The location of the boxes
+                    is <i>built into the network itself.</i> The network doesn't need to learn the location of the boxes, it
+                    starts off with locations in the right place and then learns to adjust the boxes from there. In constrast,
+                    imagine setting the fully connected layers weights to zero in YOLO. Yes we've defined our prior boxes to
+                    be distributed over the image in a nice grid, but there's nothing inherent in the network to enforce this so
+                    the predicted boxes will be all over the place, probably all bunched together somewhere near the model.
                 </p>
                 <p>
                     As a final note to help your intuition, it's reasonable to wonder why they didn't predict a class for each box.

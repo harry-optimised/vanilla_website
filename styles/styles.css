@@ -20,7 +20,7 @@ h5 {
 }
 p {
     font-family: Lora;
-    font-size: 100%;
+    font-size: 110%;
     color: #333333;
     line-height: 1.5;
 }
@@ -116,7 +116,7 @@ code {
         font-size: 120%;
     }
     p {
-        font-size: 100%;
+        font-size: 110%;
     }
     pre {
         font-size : 120%;
