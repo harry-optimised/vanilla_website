@@ -82,7 +82,7 @@
                     to understand the specifics of how Fast R-CNN does parameterisation because YOLO does it differently,
                     but it is important that you
                     understand that when an object detector predicts a bounding box, you must always ask, <i>with respect
-                    to what?</i> In this case, it is with respect to the anchor boxes. If you are familiar with those concepts, then let's continue.
+                    to what?</i> In this case, it is with respect to those cells. If you are familiar with those concepts, then let's continue.
                 </p>
                 <p>
                     Next, a quick note on the backbone. The authors designed their own convolutional backbone which
@@ -94,8 +94,9 @@
                 </p>
 
                 <p>
-                    YOLO v1 adopts the anchor based approach of Faster R-CNN (specifically the Region Proposal Network
-                    of Faster R-CNN). As I said earlier, the network architecture is very simple, it's just a backbone
+                    YOLO v1 uses an idea <i>very similar to</i> the anchor based approach of Faster R-CNN (specifically the Region Proposal Network
+                    of Faster R-CNN), there are a few differences between them that I'll point out at the end, however it's easier to
+                    begin by simply thinking of them as anchors. As I said earlier, the network architecture is very simple, it's just a backbone
                     with two fully connected layers. Let's blow up that last layer in a bit more detail. I'm going to
                     refer to it as the <i>output tensor</i> to make it easier to refer to.
                 </p>
@@ -132,7 +133,7 @@
                     to reference them from. More concretely, the network can detect objects by predicting scales and offsets
                     from those prior boxes. As an illustrative example, take the prior box on the second row down,
                     second in from the right. It's centered on the car, so it seems reasonable that this prior box
-                    should be responsible for predicting the car, but the network should output values that scaled this
+                    should be responsible for predicting the car. To predict the best box possible, the network should output values that scaled this
                     box out horizontally so that it fit the car better, just the like pink box in the final detections on
                     the right of the diagram. The <code>7x7</code> grid isn't actually drawn on the image,
                     it's just implied, and the thing that implies it is the <code>7x7</code> grid in the output tensor. You can
@@ -186,25 +187,14 @@
                     learn to find big things, the other might learn to find small things, this may help the network generalise
                     to other domains.
                 </p>
+
                 <p>
-                    To wrap this section up, I want to point out two very important differences between the approach
-                    that YOLO has taken, and the anchor boxes in the Region Proposal Network. The first is that anchors in
+                    To wrap this section up, I want to point out one difference between the approach
+                    that YOLO has taken, and the anchor boxes in the Region Proposal Network. Anchors in
                     the RPN actually refer to the nine different aspect ratios and scales from a single location. In other
                     words, each position in the RPN predicts nine different boxes from nine different prior widths and heights.
                     In contrast, it's as if YOLO has two anchors at each position, <i>but they have the same width and height.</i>
-                    YOLO does not introduce and variations in aspect ratio or size into the anchor boxes.
-                </p>
-                <p>
-                    The second important difference is that because YOLO is fully connected, it must learn where the anchor boxes
-                    are in the first place. To see what I mean by consider this. The RPN predicts boxes by convolving a convolutional
-                    filter around a feature map. At each position, the filter predicts box offsets. If you initialise the weights of
-                    that filter to zero such that the output offsets were zero, then when you convolved the filter around the
-                    feature map it would predict the set of anchor boxes that currently cover the image. The location of the boxes
-                    is <i>built into the network itself.</i> The network doesn't need to learn the location of the boxes, it
-                    starts off with locations in the right place and then learns to adjust the boxes from there. In constrast,
-                    imagine setting the fully connected layers weights to zero in YOLO. Yes we've defined our prior boxes to
-                    be distributed over the image in a nice grid, but there's nothing inherent in the network to enforce this so
-                    the predicted boxes will be all over the place, probably all bunched together somewhere near the model.
+                    YOLO does not introduce variations in aspect ratio or size into the anchor boxes.
                 </p>
                 <p>
                     As a final note to help your intuition, it's reasonable to wonder why they didn't predict a class for each box.
