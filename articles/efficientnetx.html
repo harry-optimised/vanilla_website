@@ -4,7 +4,7 @@
     <head>
         <meta charset="utf-8">
         <title>EfficientNet-X</title>
-        <meta name="description" content="An introduction and explanation to EfficientNetX.">
+        <meta name="description" content="An introduction and explanation to EfficientNet-X.">
         <meta name="author" content="Harry Turner">
         <meta name="keywords" content="learn, tutorial, paper,deep learning, machine learning, efficientnet, efficientnetx,
         datacenter accelerator, Neural Architecture Search, Latency Aware Compound Scaling, Compound Scaling, FLOPs, GPU, TPU, Latency, Throughput,
@@ -153,7 +153,7 @@ s
                     model architecture family</a> released in 2019 by Google that targetted low FLOPs.
                 </p>
                 <p>
-                    <b>EfficientNetX.</b> The model architecture family released in this paper that targets low latency
+                    <b>EfficientNet-X.</b> The model architecture family released in this paper that targets low latency
                     for specific hardware. Not to be confused with EfficientNet. It can be considered an evolution of
                     EfficientNet for the purposes of this article.
                 </p>
@@ -447,8 +447,8 @@ s
                     That wraps up this section on NAS. I will not go into any more details on how NAS actually works
                     or how the optimal architecture is found, as it's beyond the scope of the paper. From this point
                     on I will assume that we've now discovered an architecture that is optimised for high accuracy
-                    and low latency. I'll refer to this model as EfficientNetX-B0 - our base model. Now we need to
-                    scale it up to produce the EfficientNetX model family. We'll do this with Latency Aware Compound Scaling.
+                    and low latency. I'll refer to this model as EfficientNet-X-B0 - our base model. Now we need to
+                    scale it up to produce the EfficientNet-X model family. We'll do this with Latency Aware Compound Scaling.
                 </p>
                 <h3>Section 4 - Latency Aware Compound Scaling (LACS)</h3>
                 <p>
@@ -469,7 +469,7 @@ s
                     scaling in this way we can create what is called a model family, where all models share the same basic
                     architecture but each targets a different accuracy/FLOPs tradeoff. This idea was introduced in the
                     original EfficientNet paper and used to create the family of EfficientNet models. <i>This is not to be
-                    confused with EfficientNetX introduced in <u>this</u> paper.</i> Below I have copied in the table from the <i>EfficientNet</i> paper that
+                    confused with EfficientNet-X introduced in <u>this</u> paper.</i> Below I have copied in the table from the <i>EfficientNet</i> paper that
                     summarises the eight models in the family, notice the increasing accuracy and increasing FLOPs as
                     it moves from B0 to B7.
                 </p>
@@ -490,9 +490,9 @@ s
                 </p>
                 <p>
                     Just to orientate you, recall that at the end of the section on NAS, we had found a base model
-                    called EfficientNetX-B0, a <i>different</i> architecture to the EfficientNet-B0 mentioned above.
+                    called EfficientNet-X-B0, a <i>different</i> architecture to the EfficientNet-B0 mentioned above.
                     In this next few paragraphs, I will introduce Compound Scaling in general and then we'll apply
-                    it to our EfficientNetX-B0 base model to produce the EfficientNetX family which has been our mission
+                    it to our EfficientNet-X-B0 base model to produce the EfficientNet-X family which has been our mission
                     all along.
                 </p>
                 <h5><b>Compound Scaling</b></h5>
@@ -573,11 +573,11 @@ s
                     that we then fix as constants. After that, we scale up \( \color{#e83e8c} \phi \) as usual to generate the family of models.
                 </p>
                 <p>
-                    At this point, we can return to our baseline model, EfficientNetX-B0. We fix \( \color{#e83e8c} \phi \)
+                    At this point, we can return to our baseline model, EfficientNet-X-B0. We fix \( \color{#e83e8c} \phi \)
                     at 1 and optimise \( \color{#e83e8c} \alpha \), \( \color{#e83e8c} \beta \), and \( \color{#e83e8c} \gamma \)
                     to maximise the accuracy and latency. We fix the resulting values as constants
                     and then we increase \( \color{#e83e8c} \phi \) to produce eight different models and there we have it,
-                    the EfficientNetX model family which we'll see shortly.
+                    the EfficientNet-X model family which we'll see shortly.
                 </p>
                 <p>
                     Before we leave this section there are a few things I want to point out. The first is that the authors
@@ -604,7 +604,7 @@ s
                 </p>
                 <h3>Section 5 - EfficientNet-X</h3>
                 <p>
-                    And we're done. We've found a family of EfficientNetX models that have been scaled up from B0 to B7.
+                    And we're done. We've found a family of EfficientNet-X models that have been scaled up from B0 to B7.
                     Table 3 from the paper summarises this brilliantly, and what's nice is that it also compares to the
                     original EfficientNet family as well.
                 </p>
@@ -616,7 +616,7 @@ s
                 <p>
                     That concludes this article. There is a lot more detail in the paper and I deliberately haven't
                     covered everything here because I didn't want this article to get too lengthy. For example, the
-                    paper goes into detail into the differences between EfficientNetX on TPU vs GPU, it
+                    paper goes into detail into the differences between EfficientNet-X on TPU vs GPU, it
                     explains a bit more about how they carried out NAS, presents several ablation studies, and more.
                 </p>
                 <p>
