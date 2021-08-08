@@ -1,0 +1,151 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>System Design Curriculum</title>
+        <meta name="description" content="">
+        <meta name="author" content="Harry Turner">
+        <meta name="keywords" content="">
+
+        <link rel="icon" type="image/ico" href="../images/favicon.ico">
+        <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+        <link rel=“canonical” href=“https://www.harrysprojects.com/blogs/sowhat.html” />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="../js/Navbar.js" type="text/javascript" defer></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+    </head>
+    <body>
+        <div class="page-container">
+
+            <nav-bar></nav-bar>
+
+            <div>
+                <h1>System Design Curriculum</h1>
+                <p><i>July 2021</i></p>
+                <p>
+                    Rapid non stop learning. Not a proper curriculum, just what I did and what I learned. Anki.
+
+                </p>
+                <h3>Trigger</h3>
+                <p>
+                    Promotion at work. Build a data driven ML system in the cloud. Leading the team. AWS. The need
+                    to get good quick. Existing knowledge, stuff from Thea.
+                </p>
+                <h3>Networking</h3>
+                <p>
+                    Networking for Sys Admins. Great book for beginners. OMSCS Networking course, very detailed, too detailed.
+                    Did actually teach me how the internet worked though.
+                </p>
+                <h3>NGINX, and Auth0</h3>
+                <p>
+                    Triggered by use of NGINX as a JWT validator. Quickly learned about Auth0 and JWT tokens and
+                    fitting them into NGINX.
+                </p>
+                <h3>Kubernetes</h3>
+                <p>
+                    Anticipation of DevOps. EKS bootcamp.
+                </p>
+                <h3>Django & Celery</h3>
+                <p>
+                    New backend guy, application rewrite. Painful but true. Django and Celery, better architectures.
+                </p>
+                <h3>First Foray into System Design</h3>
+                <p>
+                    Designing Data Driven Applications. Good but lots of low level detail, stopped half way, will return.
+                </p>
+                <p><b>Designing Distributed Systems</b></p>
+                <p>
+                    This was a shortish book at 150 pages, that describes itself as a book of design patterns for
+                    distributed systems. I found it useful beause it started to make practical some of the concepts I'd
+                    learned about in Designing Data Driven Applications.
+                </p>
+                <p>
+                    For example, it descibes the load balancer pattern as having one node distribute
+                    requests evenly amongst a set of other worker nodes. That's conceptually what a load balancer does, but
+                    you can implement this easily in Kubernetes using just a simple ClusterIP service and a replicated set of pods.
+                </p>
+                <p>
+                    Another example is the sharding pattern. I know what sharding is having read the Designing Data Driven
+                    Applications book, but I wasn't sure how you might actually implement it until now. Turns out you can
+                    spin up an NGINX server on a node in a Kubernetes cluster with an upstream using ip hash. The ip hash
+                    means clients will get directed to the same node each time. You can then create three backends with
+                    something like Redis running on them and provide
+                    the names to the upstream and it will shard requests between them. You've effectively built a sharded
+                    Redis server. It's not the most sophisticated solution and it isn't replicated, but you can see how
+                    the concept of sharding is being implemented. It made the conceptual idea of sharding a lot more
+                    concrete for me and there's a lot to be said for that.
+                </p>
+                <p>
+                    It was well timed book because it introduced and explained topics I knew about (from
+                    reading most of Data Driven Applications) using technologies that I also knew about (Kubernetes and NGINX),
+                    so it was a surprisingly easy book to read. It also referred to Kafka, which I didn't know about,
+                    but I'll get to that later.
+                </p>
+                <p><b>Understanding Distributed Systems</b></p>
+                <p>
+                    This was very much a "tie concepts together" kind of book. There wasn't enough detail to actually
+                    go and implement something, but it covered an awful lot of ground. I guess you could call it a
+                    <a href="https://commoncog.com/blog/the-3-kinds-of-non-fiction-book/">tree book</a> if the analogy
+                    can be stretched that far. Having read Data Driven Applications, I found that I was already
+                    familiar with about 80% of the content, but it was good to see how it all fitted together.
+                    I'll read this one again multiple times I think as way of solidifying the concepts.
+                </p>
+                <p><b>Seven Databases in Seven Weeks</b></p>
+                <p>
+                    I'd seen this book previous and liked the idea of it, also two of three of those seven were PostgreSQL,
+                    DynamoDB, and MongoDB, all of which we now use at work. Seemed like as good a time as any to get on top
+                    of those.
+                </p>
+                <p>
+                    Now finished, I didn't do the exercises, I just read through, it was a good whirlwind tour of seven
+                    very different databases that I now feel like I know alot better rather than them just being names.
+                    Redis, DynamoDB, MongoDB, and PostGRES are all databases I use regularly but haven't really understoof
+                    what they were about until now. The Neo4J was interesting, I'd like to try that, and CouchDB and HBase
+                    I can't see myself using just yet but was good to know that they exist.
+                </p>
+                <p>
+                    The book was easy to understand, but a lot of content. It referred back regularly to concepts from SD
+                    such as replication, sharding, multi leader, single leader etc. It was good to see how modern databases
+                    put those concepts into practice, and it also made it very clear the different tradeodds databases
+                    must make and why they choose what they choose.
+                </p>
+                <p>
+                    PostgreSQL, SQL
+                </p>
+                <h3>gRPC</h3>
+                <p>
+                    Trigger, used at work between Django backend and a microserver. Hadn't come across before and wondered why
+                    not REST. Then after reading Understanding Distributed Systems it talked about APIs and how REST is typically
+                    used between server and clients, but Interprocess Communication (IPC) is used between services within an organisation
+                    the most common one being gRPC. That's two signals that it's a worthwhile technology to learn, so I went and looked it up.
+                </p>
+
+                <br />
+                <div id="disqus_thread"></div>
+                <script>
+                    var disqus_config = function () {
+                    this.page.url = "https://www.harrysprojects.com/blogs/systemdesigncurriculum.html";
+                    this.page.identifier = "systemdesigncurriculum";
+                    };
+
+                    (function() { // DON'T EDIT BELOW THIS LINE
+                    var d = document, s = d.createElement('script');
+                    s.src = 'https://harrysprojects-com.disqus.com/embed.js';
+                    s.setAttribute('data-timestamp', +new Date());
+                    (d.head || d.body).appendChild(s);
+                    })();
+                </script>
+                <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+                <br />
+                <br />
+            </div>
+
+        </div>
+    </body>
+    <footer>
+    </footer>
+</html>

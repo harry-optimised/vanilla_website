@@ -54,6 +54,18 @@ code {
 .image-container p {
     text-align: center;
 }
+.large-image-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.large-image-container img {
+    max-width: 1000px;
+    width: 95%;
+}
+.large-image-container p {
+    text-align: center;
+}
 
 /* Center Piece */
 .center-piece {
@@ -122,6 +134,10 @@ code {
         font-size : 120%;
     }
     .image-container img {
+        max-width: 100%;
+        padding: 20px;
+    }
+    .large-image-container img {
         max-width: 100%;
         padding: 20px;
     }

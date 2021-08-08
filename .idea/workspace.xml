@@ -5,8 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="01390805-5d80-47c1-907b-606756586a7b" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/blogs/systemdesigncurriculum.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/projects/thea/browser_page.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/images/projects/thea/map_page.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/projects/thea.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projects.html" beforeDir="false" afterPath="$PROJECT_DIR$/projects.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projects/artificial.html" beforeDir="false" afterPath="$PROJECT_DIR$/projects/artificial.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projects/carcontrol.html" beforeDir="false" afterPath="$PROJECT_DIR$/projects/carcontrol.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/projects/networklibrary.html" beforeDir="false" afterPath="$PROJECT_DIR$/projects/networklibrary.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/styles/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/styles/styles.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,6 +43,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/projects/thea.html" root0="FORCE_HIGHLIGHTING" />
+  </component>
   <component name="ProjectId" id="1lFDR1wRTeLVXNdqEk4zQaWqKLj" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -42,7 +54,7 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../aquarium_explorer" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../project_thea_revamped" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
@@ -50,11 +62,11 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/articles" />
       <recent name="$PROJECT_DIR$/blogs" />
-      <recent name="$PROJECT_DIR$" />
-      <recent name="$PROJECT_DIR$/images/projects/networklibrary" />
       <recent name="$PROJECT_DIR$/projects" />
+      <recent name="$PROJECT_DIR$/images/projects/nature_view_1" />
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/articles" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/images/blogs/burningout" />
