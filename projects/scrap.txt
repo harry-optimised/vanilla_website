@@ -1,0 +1,161 @@
+# Software Design Document of the Platform Backend
+
+Author: David Salac
+
+_Follows IEEE Std 1016-1998_
+
+**Abstract:**
+The Platform Backend is the entry point of the system. It manages users, groups and organizations, all main data structures (like surveys, projects, assets, sites, events). Also, the Platform Backend is responsible for the authorization of users (their requests). This document describes design details for each of these parts.
+
+## Scope
+Platform Backend handles all user requests (coming through the front-end), query databases, and call other micro-services in the system (and process responses) from the functional point of view. Practically, it is a RESTful application built on a web framework. From the security point of view, the Platform Backend manages users, organizations, authentication tokens, and authorizations of requests. It is based on microkernel architecture with three main plug-in modules: scenario (manages surveys, assets, projects and sites), user (manages organizations, groups and users), event (manages events and classification of tiles), plus above it all is API sub-application that makes functionality available to front-end (acting as a user).
+
+## Definitions and Acronyms
+1. **UUID**: a Universally Unique IDentifier (a 128-bit unique label for various objects).
+
+# SYSTEM OVERVIEW
+The following figure shows the position of the Platform Backend from different architecture patterns.
+
+![Overall-Architecture](../blob/main/diagrams/Architecture.png?raw=true)
+
+The component processes data from a relational database and two micro-services based on the request coming from the platform front-end (React client) and serves data back to the front-end.
+
+**The whole system contains the following modules:**
+ * **Document database** (MongoDB): stores information about tiles.
+ * **Relational database** (PostgreSQL): stores information important to the Platform Backend.
+ * **Survey microservice** (accessible through gRPC): perform selection (filtration and sorting) and classification of tiles stored in the document database.
+ * **Ingestor microservice** (accessible through REST): process video files stored in S3 and prepare tiles (images), and store information about ingested tiles to document database.
+
+Arrows in the diagram show dependencies (meaning that the client can directly access Platform Backends but not, for example, survey microservice or that Platform Backend can access only relational database and microservices, but not document database).
+
+# SYSTEM ARCHITECTURE
+
+## Architectural Design
+Platform Backend itself is composed of several plug-in modules:
+1. **Scenario**: Manages database entities (tables) related to survey, like Project, Asset, Site and Survey object itself. Also implements permission cascading for all objects in hierarchy.
+2. **User**: Manages database entities (tables) related to user, like Organization, Group (for admin and regular users in the organization), and User object itself.
+3. **Event**: Entity related to the classification of tiles and generating events.
+4. **API**: Provides JSON/REST based interface for application for interaction with front-end (is also responsible for authorization and authentication of incoming requests).
+5. **Repository**: manages the link between files stored in S3 and concrete database objects (survey, asset, project, site). It implements the features of the DDP application.
+
+![Architectural-design](../blob/main/diagrams/django_schema.gif?raw=true)
+
+# COMPONENT DESIGN
+
+## Scenario plug-in
+This part is responsible for storing basic models related to scenarios (namely: surveys, batches, projects, assets and sites). 
+![Scenario-ERA](../blob/main/diagrams/survey_era.gif?raw=true)
+A survey entity is the most important object in the hierarchy (logic is survey-centric).
+### Permissions
+The logic is that only users in the administrator group can create a new entity. Also, users in administrator groups can share objects. Sharing of permissions is Survey-centred. It means that the admin user can share a survey, and sharing the survey automatically shares all related entities (propagation of sharing). Administrators can share in two modes, view mode (all is propagated) and change mode (view permission is propagated, change permission on an object is related only to the object itself).
+
+Django (with some modifications from Guardian dependency) works with the following permission classes: 
+
+ * **view** – The user can list/view details of the object(s).
+ * **add** – User can add an object (create a new object with the unique ID, always model/global level).
+ * **change** – User can change object (fields in the object, except ID).
+ * **delete** – User can delete an object.
+
+Permissions can be assigned to both group and/or user. Permissions are implemented using the Django-Guardian extension.
+
+## User plug-in
+This plug-in is responsible for managing users, groups and organizations in the system. The logic is that each organization has two groups of users - administrators and regular users (defined by the boolean value in group definition). Each user can be a member of one or many groups.
+![User-ERA](../blob/main/diagrams/organization_era.gif?raw=true)
+
+### Authorization
+Currently, the default Django/Django Rest Framework logic is used. The application uses token-based authorization. There is a dedicated end-point to provide the token based on username/password combination.
+
+## Event plug-in
+Event plug-in is responsible for providing data structures and functionality related to tile classification and generating of events.
+
+Database entities in event plug-in are split into two layers:
+1. **Description layer:** Provides options that can be select for the classification of tiles in surveys (this layer is not related to any survey). 
+2. **Classification layer:** Select concrete options from the Description layer for a survey. When events are generated, and tiles are classified, tables in this layer are affected.
+
+![ERA-diagram](../blob/main/diagrams/events.gif?raw=true)
+Yellow boxes are Python Mixins (technically are copied as fields to the database); the blue box is the definition of enumeration. The pink box is located in the Document database (MongoDB). Other boxes are normal relational database tables.
+
+### Description layer
+Components in this layer are available to a user before any new survey is created.
+
+**EventClass:** provides a pattern for classes (aka labels) that are used for tile classification. User can either choose template events or create own events.
+
+Template event classes (and other template objects) are provided by system administrators (Vaarst level) and shared for all users. In contrast, non-templates objects are created by administrators in organizations and are not shared among organizations. There is an ingestion logic that can load and store these templates from the JSON file.
+
+**EventCategory:** represents visual separator for classes. Each event class can be in just one category.
+
+**EventUseCase:** Represent a container for event classes. It is a standard use case for the classification of the survey. Functionally, if the user selects some use-case object for a given survey, apt event classes are preselected.
+
+#### Example
+**Construction Origin** (this is EventCategory object)
+ * [x] Anode (this is EventClass object)
+ * [x] Pipe Bend (this is EventClass object)
+ * [ ] Pipe Clamp (this is EventClass object)
+ * [ ] Pipeline Crossing (this is EventClass object)
+
+**Debris** (this is EventCategory object)
+ * [ ] Anchor (this is EventClass object)
+ * [x] Trawlboard (this is EventClass object)
+ * [ ] Boulder (this is EventClass object)
+
+### Classification layer
+Objects in this layer are dependant on a survey. They represent objects relevant to the classification of tiles and the generation of events in a concrete survey.
+
+**SurvyClass**: these objects represent concrete options available for the classification of tiles in a survey. Functionally, survey classes have to be preselected before data are ingested into the system (and are unchangeable after data ingestion).
+
+**SurveyEvent**: this table represents the event in a survey (limited to batch). An event can be either an interval event (with that continues from one tile to another) or a point event (starting and ending points of the event are identical). 
+
+**SurveyTileDetail**: this table allows to add a description (like a comment or other additional data) to tiles of a particular class in the event.
+
+### Tile classification of tiles and event generation
+#### Tile classification
+The user (front-end) continuously classifies tiles by hitting the end-point with request with the following body structure:
+```json
+{
+    "positive": [TILE_UUID, ...],
+    "negative": [TILE_UUID, ...],
+    "unset": [TILE_UUID, ...]
+}
+```
+In this request body, tiles in the positive list are classified as certain and with a probability level of 1. Tiles in the negative list are classified as certain and with a probability level of 0. And tiles in the unset list are declassified (set to uncertain and probability of null).
+
+#### Description of tiles
+Users can attach a description (like some comments or general description fields) to each tile and each class in a survey. Reference to event object (SurveyEvent) is later assigned when events are generated, but only if the tile UUID of a description entity (SurveyTileDetail) matches to either `tile_from` or `tile_to` references in the survey event object (SurveyEvent).
+
+#### Generation of events
+Events (for a batch) can be generated whenever a user wants. The algorithm for event generation is located in the Survey micro-service. If the user chooses to generate a survey, all existing SurveyEvent entities are removed, and new ones are generated based on the survey micro-service outputs. Right after the events are generated, description objects (SurveyTileDetail) are linked to the correct survey.
+
+**Note on optimization**: there can be references to batch objects to optimize performance on each entity in the classification layer.
+
+### Workflow for event generation
+The following diagram shows the simplified workflow for the generation of events.
+![WorkFlow](../blob/main/diagrams/WorkFlow.png?raw=true)
+
+1. **Create a new survey**: The user creates an empty survey object (together with other required objects).
+2. **Define new event classes** (optional step): If a user wants to use some additional event classes, it is time to define them.
+3. **Choose event classes for the survey**: Apt event classes are chosen from template classes and user-defined classes (this selection is final and later cannot be changed). Users can also use a suggestion from a use-case object that preselects apt classes.
+4. **Data Ingestion**: The user needs to pass a path to survey data in S3. The Ingestor microservice ingests these data.
+5. **Classify and describe tiles**: user can continuously classify tiles and add a further description (like comments) for each class to each classified tile.
+6. **Generation of events**: Once the user finishes classification, events can be generated (and linked with description objects where possible).
+7. **Validation of generated events**: generated events and descriptions can be validated in this step.
+    1. If validation fails, tiles can be re-classified.
+    2. If validation succeeds, the algorithm generates outputs
+8. **Generate outputs**: all required outputs are generated (like CSV files)
+
+## Repository plug-in
+This plug-in is responsible for managing file structure in S3. The whole file structure is composed of files and folders (of any depth). A repository is related to any (or many of) subject - survey, asset, site, project. 
+![RepositoryERA](../blob/main/diagrams/repository.gif?raw=true)
+Technically, the user uploads data to a folder in S3 and maps this folder to the RepositoryS3 object. User (front-end) also have to define to what objects is this folder related.
+FormatValidator objects provide information about acceptable file extensions (like PDF, PNG, ...). It also provides descriptions related to these file extensions (its name, description and prefered icon).
+
+### API functionality
+Listing End-point serves a list of objects in S3 and details related to file extensions (from FormatValidator object). It works as a standard file explorer/manager.
+
+The detail end-point generates a pre-signed URL for the download of the desired item.
+
+Create - user pass folder in S3, and this operation triggers the upload process.
+
+### Data ingestion
+The data ingestion is similar to ingestion of video files for Survey micro-service. A user passes the link to the relevant folder in the S3 bucket (that has properly configured permissions), and the application copies these data.
+
+An integral part of the data-ingestion process is the conversion of selected video files to standard mp4 files. This can be done in an ingestion pipeline (probably using an external system application for this purpose). 
