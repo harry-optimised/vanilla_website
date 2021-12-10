@@ -4,13 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="01390805-5d80-47c1-907b-606756586a7b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/machine_learning.html" beforeDir="false" afterPath="$PROJECT_DIR$/machine_learning.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/projects.html" beforeDir="false" afterPath="$PROJECT_DIR$/projects.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/projects/bgp_measurements.html" beforeDir="false" afterPath="$PROJECT_DIR$/projects/bgp_measurements.html" afterDir="false" />
-    </list>
+    <list default="true" id="01390805-5d80-47c1-907b-606756586a7b" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -83,7 +77,7 @@
       <option name="presentableId" value="Default" />
       <updated>1632654157504</updated>
       <workItem from="1632654158660" duration="3817000" />
-      <workItem from="1639143709924" duration="11293000" />
+      <workItem from="1639143709924" duration="11623000" />
     </task>
     <servers />
   </component>
