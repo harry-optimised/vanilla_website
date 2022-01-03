@@ -40,8 +40,8 @@ pre {
     color: #e83e8c;
 }
 code {
-    color: #e83e8c;
-    font-weight: 500;
+    color: #666666;
+    font-weight: 900;
 }
 .image-container {
     display: flex;

@@ -1,0 +1,311 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Python Project Setup</title>
+        <meta name="description" content="My standard Python project setup.">
+        <meta name="author" content="Harry Turner">
+        <meta name="keywords" content="python, project, setup, flake8, mypy, github actions, CI, CD, docker, lint">
+        <link rel="icon" type="image/ico" href="../images/favicon.ico">
+        <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+        <link rel=“canonical” href=“https://www.harrysprojects.com/articles/rcnn.html” />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script src="../js/Navbar.js" type="text/javascript" defer></script>
+        <!-- Global site tag (gtag.js) - Google Analytics
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-180754451-1');
+        </script>-->
+    </head>
+    <body>
+        <div class="page-container">
+
+            <nav-bar></nav-bar>
+
+            <div>
+                <h1>Standard Python Project Setup</h1>
+                <p><i>Updated 3rd January 2022</i></p>
+
+                <h3>Introduction</h3>
+                <p>
+                    I've worked with Python for the last five years, and in that time I've converged to a
+                    common structure for Python projects that works for most use cases. This structure has been informed
+                    by articles I've read, the people I've worked with, and experience in the field. It is intended
+                    to capture best practice.
+                </p>
+                <p>
+                    The current setup is heavily influenced by the way I currently do things at work, and as
+                    should be expected, it's always evolving.
+                </p>
+                <p>
+                    In this reference article, I cover the following topics.
+                </p>
+                <ul>
+                    <li><p>Repository Structure</p></li>
+                    <li><p>Development Style</p></li>
+                </ul>
+
+                <h3>Repository Structure</h3>
+                <p>
+                    See this public repository for an example.
+                    <a href="https://github.com/HarryTurner93/python_project">Template Python Project</a>
+                </p>
+                <h5>Github Actions</h5>
+                <p>
+                    I default to Github Actions for Continuous Integration as it keeps it together with my
+                    version control tools. All projects should have an <code>on-push.yml</code>
+                    action that runs the linter and unit tests upon each push to the repository.
+                </p>
+                <h5>Source Folder</h5>
+                <p>
+                    I keep all source code inside a <code>src</code> folder. Most projects also benefit from being made
+                    into a package, so I usually create a Python package inside <code>src</code> and put all the code in there.
+                </p>
+                <h5>.gitignore</h5>
+                <p>
+                    I use <a href="https://github.com/github/gitignore/blob/main/Python.gitignore">this</a>
+                    comprehensive <code>.gitignore</code> file. I uncomment the <code>.idea/</code> directive at the bottom
+                    as I use PyCharm for my IDE.
+                </p>
+                <h5>Easy Scripts</h5>
+                <p>
+                    Every project includes bash scripts for starting, stopping, linting, and
+                    unit testing the codebase. These scripts are named <code>start.sh</code>, <code>stop.sh</code>,
+                    <code>lint.sh</code>, and <code>unit.sh</code> respectively. I do this because different projects
+                    may have different ways of testing or starting the app. For instance, Django has
+                    <a href="https://docs.djangoproject.com/en/4.0/topics/testing/overview/">its own way</a> to run
+                    unit tests. For a given repository, I put the appropriate commands inside the relevant bash script,
+                    this acts as both a reference and as a convenience script for quickly running common tasks.
+                </p>
+                <h5>Local Environment - Virtualenv</h5>
+                <p>
+                    In a later section I will discuss my typical development style in detail, for now I'll
+                    just say that I prefer to develop by writing tests. However, I dislike having to launch my app within
+                    a local development environment in order to unit test it. If I can get away with it, I will
+                    create a local Python environment with <code>python3.9 -m virtualenv venv</code> and install the
+                    packages into it with <code>python3.9 -m pip install -r src/requirements.txt</code>. I can
+                    then activate this environment with <code>source venv/bin/activate</code>. Now I can run my unit
+                    tests, do any formatting & linting, and run typechecking, all without having to start the app.
+                </p>
+                <h5>Local Environment - Docker & Docker Compose</h5>
+                <p>
+                    Not all apps can be developed in this way however, some benefit from being launched into a dedicated
+                    environment, a notable example is Django. For this, I will use a
+                    <code>Dockerfile</code> and a <code>docker-compose.yml</code> file that sets up any extra services
+                    needed to run the app, like a database for example. Running <code>docker-compose</code> is
+                    <a href="https://docs.docker.com/compose/reference/up/">trivial</a>
+                    but I still usually put the commands into the <code>start.sh</code> script in case any
+                    other non-standard setup is required.
+                </p>
+                <h5>Production Environment - Docker</h5>
+                <p>
+                    I run production apps within a
+                    <a href="https://www.docker.com/resources/what-container">Docker container</a>, as it's the
+                    easiest way to deploy into my most common deployment environments, Kubernetes for instance.
+                    The <code>Dockerfile</code> describes how my app should run. I use the same <code>Dockerfile</code>
+                    for both running locally with <code>docker-compose</code> and in production.
+                </p>
+                <h5>Tests</h5>
+                <p>
+                    I'll talk more about tests in a later section when I go into detail on my development process,
+                    for now I'll say that I lean heavily on unit tests and will use Pytest wherever I can. I use
+                    the <a href="">pytest-cov</a> extension to measure code coverage. The commands
+                    to run the tests are in the <code>unit.sh</code> script, which also takes care of setting
+                    any environment variables needed to configure the app for testing.
+                </p>
+                <h5>README and Documentation</h5>
+                <p>
+                    I am passionate about comprehensive, useful, and relevant documentation. I am also well aware of
+                    how difficult it is to keep it up to date, despite the best efforts to maintain it. I'll
+                    describe my structure for documentation, and provide a couple of tricks I use for staying on top of it.
+                </p>
+                <p>
+                    First, the <code>README.md</code> should provide a short introduction to the project, requirements
+                    for running the app, and detailed steps on how to install it and run it. Where relevant, I include
+                    badges for various CI metrics such passing builds, code quality, and version information. I put
+                    detailed design documentation in a separate markdown file and link to it from the README.
+                </p>
+                <p>
+                    The structure of the detailed design documentation loosely follows
+                    <a href="https://standards.ieee.org/standard/1016-2009.html">IEEE 1016-2009</a>. I will include
+                    relevant UML diagrams to explain a process or architecture more clearly. I'll explain and justify
+                    any major or unusual design decisions. I'll also tend to put requirements in here as well unless
+                    they're being managed as part of an external process. See a typical example
+                    <a href="https://github.com/HarryTurner93/thea">here</a>.
+                </p>
+                <p>
+                    To keep documentation up to date, I have a rule where if I am asked something about
+                    the system such as how it works, or whether it does thing X, or has feature Y - As well as
+                    providing an answer, I add the information (or directions on how to find the answer) to the
+                    documentation. I also include a dedicated documentation step in my development process on which
+                    I'll go into more detail later.
+                </p>
+                <h3>Development</h3>
+                <h5>Code Hygiene with FILTURED</h5>
+                <p>
+                    When I am working on a new feature, before I declare it complete I will use the following checklist
+                    to give me confidence that the code is correct and of high quality. Note that this isn't the same
+                    as feature completion from the perspective of the product owner who may have their own user
+                    acceptance tests and other criterion.
+                </p>
+                <ul>
+                    <li>
+                        <p>
+                            <b>F</b>ormat. I run <code>python3.9 -m black src/</code> to format all code to a consistent
+                            style. <a href="https://black.readthedocs.io/en/stable/">black</a> is a commonly used and
+                            opinionated code formatter. I highly recommend it.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <b>I</b>mport Order. I separate imports into three groups. System Imports are those
+                            packages that ship with Python, Third Party Imports are those that need to be installed
+                            and are part of the <code>requirements.txt</code> file. Finally Relative Imports are those
+                            from elsewhere in the codebase.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <b>L</b>int. I run <code>python3.9 -m flake8 src/</code> to run the flake8 code linter on all
+                            my source files. I tend to install <code>flake8-annotations</code> and
+                            <code>flake8-docstrings</code> as well. The first enforces proper use of type annotations,
+                            the second helps me write better docstrings.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <b>T</b>yping. I run <code>python3.9 -m mypy src/</code> to run the static type checker on
+                            all my source files. Since I used <code>flake8-annotations</code>, the code should be heavily
+                            typed, allowing mypy to catch bugs. I put the commands for both the linting and type
+                            checking steps into <code>lint.sh</code>.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <b>U</b>nit Tests. I make sure all code is unit tested with high coverage. Tests should be
+                            runnable with the command <code>bash unit.sh</code>. I also make sure that any new tests are
+                            run as part of the CI on-push step.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <b>R</b>egression Tests. This one can't been done within the local codebase, it's a
+                            reminder. If relevant, I write and run tests against the deployed
+                            system (which includes interaction with other services I have running).
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <b>E</b>asy Scripts. This is a reminder to make sure all my easy scripts are up-to-date
+                            and working.
+                        </p>
+                    </li>
+                    <li>
+                        <p>
+                            <b>D</b>ocumentation. Finally, I document everything. I strive to keep documentation updated
+                            as I go, so this step usually involves finding the relevant place in the documentation
+                            and editing/adding to that section. I also check the quality of my comments as part of this step.
+                        </p>
+                    </li>
+                </ul>
+                <h5>Comments</h5>
+                <p>
+                    I make liberal use of comments <i>where they clearly add value</i>. Otherwise, I prefer
+                    the code be self-explanatory which is an incentive to make it as simple and readable as possible.
+                    Comments add value when they provide justification for <i>why</i> something was done. Bad comments
+                    will just repeat what the code is already communicating. I will often link to an article or stack
+                    overflow page where a piece of code or idea came from.
+                </p>
+                <p>
+                    I have suggested two places to put design decision documentation, within the comments, and within
+                    the documentation. I find value in both. Comments have the advantage of being local to the code,
+                    they're available right when they're needed which is more helpful for the reader. They're also more
+                    likely to be kept up to date. Design documentation is useful for higher level decisions and rationale
+                    and is often structured in a way that is easier to navigate for those not familiar with the codebase.
+                </p>
+                <h5>Test Driven Development (ish)</h5>
+                <p>
+                    I write code by writing the test for it <i>at the same time</i>. This isn't
+                    strictly <a href="https://www.agilealliance.org/glossary/tdd/">Test Driven Development</a>, although
+                    it is close. (It's probably more test augmented development).
+                </p>
+                <p>
+                    As I program, I force myself not to run my app directly to see changes, rather I will run it via a test
+                    and assert the output is as expected. I also make heavy use of mocks to assert that my functions
+                    are making the correct function calls, with the correct arguments. I find it helpful to use
+                    pytest's <code>-s</code> option to direct standard output to the console.
+                </p>
+                <p>
+                    I will write tests for one function at a time and will mock every function call that
+                    function-under-test makes. To assert correct behaviour, I typically create a class
+                    for the mocked function with a <code>def __call__()</code> function that captures that
+                    call and any arguments passed to it.
+                </p>
+                <p>
+                    Many of my projects use <a href="https://boto3.amazonaws.com/v1/documentation/api/latest/index.html">boto3</a>
+                    to interact with AWS services. My favourite way to test AWS calls is to use <a href="https://github.com/spulec/moto">moto</a>
+                    which provides decorators to mock AWS requests. I have moved away from testing using
+                    <a href="https://localstack.cloud/">LocalStack</a>, as it requires me to launch both LocalStack
+                    and the app locally with <code>docker-compose</code>. As I said earlier, I prefer to
+                    run everything directly on the codebase with unit tests. That being said, LocalStack has its place
+                    if I want to run more comprehensive tests against multiple services at once. At this point however
+                    I'm starting to write system tests and would argue that it's more valuable to write a system test
+                    against the actual production system instead, rather than a simulated local version of it.
+                </p>
+                <h3>Configuration</h3>
+                <p>
+                    An example of my typical configuration strategy can be found in the
+                    <a href="https://github.com/HarryTurner93/python_project">example project</a>. My approach is to
+                    make a <code>CONFIG</code> object available globally by exporting it from <code>config.config</code>.
+                    The <code>base_config.py</code> defines this config object and specifies what configuration
+                    options are available. Then for each environment I override the base object with the specific
+                    values needed.
+                </p>
+                <p>
+                    The local environment specifies configuration values for running within <code>docker-compose</code>
+                    which usually means setting URL endpoints to LocalStack instead of AWS proper. I have a local
+                    testing environment which is the configuration loaded by the unit tests. These typically stub
+                    out most of the configuration options. Finally, the production configuration grabs the values
+                    from environment variables so that they can be passed in and dynamically changed more easily.
+                </p>
+                <h3>Bits to Incorporate</h3>
+                <ul>
+                    <li><p>Projen</p></li>
+                    <li><p>Branching, Master, Staging, feature/fix.</p></li>
+                </ul>
+
+                <br />
+                <div id="disqus_thread"></div>
+                <script>
+                    var disqus_config = function () {
+                    this.page.url = "https://www.harrysprojects.com/blogs/pythonproject.html";
+                    this.page.identifier = "pythonproject";
+                    };
+
+                    (function() { // DON'T EDIT BELOW THIS LINE
+                    var d = document, s = d.createElement('script');
+                    s.src = 'https://harrysprojects-com.disqus.com/embed.js';
+                    s.setAttribute('data-timestamp', +new Date());
+                    (d.head || d.body).appendChild(s);
+                    })();
+                </script>
+                <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+                <br />
+                <br />
+            </div>
+
+        </div>
+    </body>
+    <footer>
+    </footer>
+</html>
