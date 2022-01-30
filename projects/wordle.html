@@ -144,7 +144,7 @@
                     We can therefore derive a notion of the value of a word as <b><i>the average size of the reduced word list
                     that it would produce</i></b>. Our goal is then to choose the best word at each iteration according
                     to this notion of value. Note that lower values are better here because we want to reduce the size
-                    of the word list as much as possible. The word average is important here - we
+                    of the word list as much as possible. My use of the word 'average' is important here - we
                     don't know the answer yet so we have to compute the size of the reduced word set for all possible
                     answers. Since each word is equally likely to be the answer, we average the result.
                 </p>
@@ -162,7 +162,7 @@
                 <p>
                     The <a target="_blank" href="https://github.com/HarryTurner93/wordle_solver/blob/c32578ef6dd512b6b21eeceeef9b3ed33d51269c/src/wordle_solver/solver.py#L142">outer loop</a>
                     is quite trivial, it repeatedly calls the inner function and averages the results. The inner
-                    function is slightly complex. To compute the reduced word list for a given input and answer,
+                    function is slightly more complex. To compute the reduced word list for a given input and answer,
                     it has to apply three rules, the rule for blanks, the rule for yellows, and the rule for greens.
                     It uses these rules to "knock out" invalid words. At this point, it's probably easier to understand
                     what's happening by reading <a target="_blank" href="https://github.com/HarryTurner93/wordle_solver/blob/c32578ef6dd512b6b21eeceeef9b3ed33d51269c/src/wordle_solver/solver.py#L46">the code itself</a>, but this should give you the context for what this function
@@ -171,13 +171,12 @@
                 <p>
                     Once we have a way of computing the value for a given word on a given word set, we can use this
                     to determine which word reduces the word set by the largest amount and therefore, the one we
-                    should choose. The <a target="_blank" href="https://github.com/HarryTurner93/wordle_solver/blob/8d5c2f31a5b4c0355d307412756c7d3ee268852a/src/wordle_solver/solver.py#L169">code</a>
-                    for this is simple.
+                    should choose.
                 </p>
                 <p>
                     The full 'solver' then, is a wrapper around these functions that takes as input
                     the guess and the feedback from Wordle, computes the reduced set of words based on the feedback,
-                    and then solves for the next most valuable word. Code <a target="_blank" href="https://github.com/HarryTurner93/wordle_solver/blob/c32578ef6dd512b6b21eeceeef9b3ed33d51269c/main.py#L19">here</a>.
+                    and then solves for the next most valuable word.
                 </p>
                 <div class="image-container">
                     <img src="../images/projects/wordle/algorithm.png"/>
