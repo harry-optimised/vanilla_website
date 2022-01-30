@@ -142,19 +142,31 @@
                 </p>
                 <p>
                     We can therefore derive a notion of the value of a word as <b><i>the average size of the reduced word list
-                    that it would produce</i></b>. Note that lower values are better here because we want to reduce the size
-                    of the word list as much as possible. Using the average is important because we
-                    don't know the answer yet, so we have to look at the reduction in the word set for all possible
+                    that it would produce</i></b>. Our goal is then to choose the best word at each iteration according
+                    to this notion of value. Note that lower values are better here because we want to reduce the size
+                    of the word list as much as possible. The word average is important here - we
+                    don't know the answer yet so we have to compute the size of the reduced word set for all possible
                     answers. Since each word is equally likely to be the answer, we average the result.
                 </p>
                 <p>
-                    This forms the core of the algorithm. Because we're computing the average, we need to compute
-                    the size of the reduced word set for each possible answer (the answer could be any word in the word set).
-                    This is done by an <a target="_blank" href="https://github.com/HarryTurner93/wordle_solver/blob/c32578ef6dd512b6b21eeceeef9b3ed33d51269c/src/wordle_solver/solver.py#L142">outer loop</a>
-                    which calls the function <a target="_target" href="https://github.com/HarryTurner93/wordle_solver/blob/c32578ef6dd512b6b21eeceeef9b3ed33d51269c/src/wordle_solver/solver.py#L46">reduce_from_answer</a>.
-                    It is this second function that computes the reduced word list itself and works
-                    by applying three rules, one for blanks, one for yellows, and one for greens, to the word set
-                    which knocks out invalid words.
+                    This then forms the core of the algorithm. To compute the value for a single input word, we will have an
+                    inner function that computes the reduced
+                    word list for a given answer, and an outer loop that repeatedly calls this inner function for every
+                    possible answer. We then average the size of all those word lists and return that
+                    value as the result.
+                </p>
+                <div class="image-container">
+                    <img src="../images/projects/wordle/inner.png"/>
+                    <p><i>This is how we compute the value for a single word.</i></p>
+                </div>
+                <p>
+                    The <a target="_blank" href="https://github.com/HarryTurner93/wordle_solver/blob/c32578ef6dd512b6b21eeceeef9b3ed33d51269c/src/wordle_solver/solver.py#L142">outer loop</a>
+                    is quite trivial, it repeatedly calls the inner function and averages the results. The inner
+                    function is slightly complex. To compute the reduced word list for a given input and answer,
+                    it has to apply three rules, the rule for blanks, the rule for yellows, and the rule for greens.
+                    It uses these rules to "knock out" invalid words. At this point, it's probably easier to understand
+                    what's happening by reading <a target="_blank" href="https://github.com/HarryTurner93/wordle_solver/blob/c32578ef6dd512b6b21eeceeef9b3ed33d51269c/src/wordle_solver/solver.py#L46">the code itself</a>, but this should give you the context for what this function
+                    is doing.
                 </p>
                 <p>
                     Once we have a way of computing the value for a given word on a given word set, we can use this
@@ -169,6 +181,7 @@
                 </p>
                 <div class="image-container">
                     <img src="../images/projects/wordle/algorithm.png"/>
+                    <p><i>How the solver works at a high level.</i></p>
                 </div>
                 <p>
                     All of this is quite high level, it's best to
