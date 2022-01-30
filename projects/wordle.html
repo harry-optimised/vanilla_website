@@ -145,15 +145,22 @@
                     that it would produce</i></b>. Note that lower values are better here because we want to reduce the size
                     of the word list as much as possible. Using the average is important because we
                     don't know the answer yet, so we have to look at the reduction in the word set for all possible
-                    answers. Since each word is equally likely to be the answer, we average the result. The
-                    <a target="_blank" href="https://github.com/HarryTurner93/wordle_solver/blob/c32578ef6dd512b6b21eeceeef9b3ed33d51269c/src/wordle_solver/solver.py#L142">code</a>
-                    for this is very simple.
+                    answers. Since each word is equally likely to be the answer, we average the result.
+                </p>
+                <p>
+                    This forms the core of the algorithm. Because we're computing the average, we need to compute
+                    the size of the reduced word set for each possible answer (the answer could be any word in the word set).
+                    This is done by an <a target="_blank" href="https://github.com/HarryTurner93/wordle_solver/blob/c32578ef6dd512b6b21eeceeef9b3ed33d51269c/src/wordle_solver/solver.py#L142">outer loop</a>
+                    which calls the function <a target="_target" href="https://github.com/HarryTurner93/wordle_solver/blob/c32578ef6dd512b6b21eeceeef9b3ed33d51269c/src/wordle_solver/solver.py#L46">reduce_from_answer</a>.
+                    It is this second function that computes the reduced word list itself and works
+                    by applying three rules, one for blanks, one for yellows, and one for greens, to the word set
+                    which knocks out invalid words.
                 </p>
                 <p>
                     Once we have a way of computing the value for a given word on a given word set, we can use this
                     to determine which word reduces the word set by the largest amount and therefore, the one we
                     should choose. The <a target="_blank" href="https://github.com/HarryTurner93/wordle_solver/blob/8d5c2f31a5b4c0355d307412756c7d3ee268852a/src/wordle_solver/solver.py#L169">code</a>
-                    for this is also very simple.
+                    for this is simple.
                 </p>
                 <p>
                     The full 'solver' then, is a wrapper around these functions that takes as input
