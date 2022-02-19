@@ -152,8 +152,9 @@
                 <p>
                     In order to predict a single box, the network must output a number of things. Firstly it must encode the
                     coordinates of the box which YOLO encodes as <code>(x, y, w, h)</code>, where <code>x</code> and
-                    <code>y</code> are the center of the box. Early I suggested you familiarise yourself with box parameterisation,
-                    because YOLO does output the actual coordinates of the box. Firstly, the width and height are normalised with
+                    <code>y</code> are the center of the box. Earlier I suggested you familiarise yourself with box parameterisation,
+                    this is because YOLO does <i>not</i> output the actual coordinates of the box, but parameterised coordinates instead.
+                    Firstly, the width and height are normalised with
                     respect to the image width, so if the network outputs a value of <code>1.0</code> for the width, it's saying the
                     box should span the entire image, likewise <code>0.5</code> means it's half the width of the image. Note that
                     the width and height have nothing to do with the actual grid cell itself. The <code>x and y</code> values
