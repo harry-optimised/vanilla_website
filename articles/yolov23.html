@@ -194,41 +194,6 @@
                     of Original YOLO was it's poor recall. So even though the mAP is reduced, there is now more room
                     for improvement, and that's important.
                 </p>
-                <p>
-                    I want to share a quick note on something that's tripped me up that I haven't yet fully resolved. In the
-                    Original YOLO paper it states the reason for switching to a convolutional method as follows:
-                </p>
-                <p>
-                    "<i>Predicting offsets instead of coodinates simplifies the problem and
-                    makes it easier for the network to learn</i>".
-                </p>
-                <p>
-                    That makes sense, but then in the Original YOLO paper it states:
-                </p>
-                <p>
-                    "<i>The (x, y) coordinates represent the center of the box relative to
-                    the bounds of the grid cell.</i>".
-                </p>
-                <p>
-                    To me this sounds like Original YOLO outputs offsets as well, and various implementations of
-                    Original YOLO that I've looked at seem to reflect this. If anyone has a good explanation that
-                    resolves these differences please do let me know. Otherwise, I am currently interpretting it as a
-                    mistake in the paper and the true advantage of the convolutional approach is as follows.
-                </p>
-                <p>
-                    Assume that both Original YOLO and New YOLO, are predicting offsets from a set of imaginary grid cells on the image. In the case of New YOLO,
-                    each grid cell is associated with a variety of different sized prior boxes called anchors, the
-                    dimensions of these boxes are determined with K-Means in New YOLO and manually specified in SSD and
-                    Faster R-CNN. Original YOLO uses no such anchors, all box predictions are referenced directly from the grid
-                    cell. For Original YOLO, this association between network output (the representation) and the input grid
-                    cells is done through a fully connected layer, each set of outputs in that fully connected layer
-                    is associated with a particular part of the image and learns to detect things in that part of the image.
-                    However, SSD, Faster R-CNN, and now New YOLO switch to a convolutional method, which makes much more
-                    sense because the weights are now shared for all parts of the image. A dog detected in the bottom
-                    right of the image will be detected by the same set of weights as one detected in the top left.
-                    This, I believe, is the true advantage of switching to the convolution based approach used in all
-                    modern object detectors.
-                </p>
                 <h3>Box Parameterisation</h3>
                 <p>
                     New YOLO is now using anchor boxes just like Faster R-CNN, but they adopt a new way of parameterising
