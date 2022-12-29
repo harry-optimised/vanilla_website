@@ -71,26 +71,23 @@ code {
 .center-piece {
     width: 100%;
     display: flex;
-    justify-content: center;
+    justify-content: start;
     padding-top: 20px;
 }
 .center-piece div {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: start;
 }
-.center-piece div img {
-        width: 60px;
-    }
+
 .center-piece div h1 {
     font-size: 300%;
     font-weight: 700;
-    margin: 16px;
+    margin-bottom: 0px;
 }
 .center-piece div h3 {
     font-size: 150%;
     font-weight: 300;
-    margin: 8px;
 }
 
 /* Nav */
@@ -156,11 +153,8 @@ code {
     }
 
     /* Center Piece */
-    .center-piece div img {
-        width: 40px;
-    }
     .center-piece div h1 {
-        font-size: 220%;
+        font-size: 250%;
     }
     .center-piece div h3 {
         font-size: 120%;
