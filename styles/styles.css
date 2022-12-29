@@ -79,8 +79,11 @@ code {
     flex-direction: column;
     align-items: center;
 }
+.center-piece div img {
+        width: 60px;
+    }
 .center-piece div h1 {
-    font-size: 400%;
+    font-size: 300%;
     font-weight: 700;
     margin: 16px;
 }
@@ -93,16 +96,25 @@ code {
 /* Nav */
 .nav-bar {
     display: flex;
-    width: 40%;
-    margin: auto;
-    justify-content: space-around;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+}
+.nav-bar-left {
+    display: flex;
+    width: 280px;
+    justify-content: space-between;
+}
+.nav-bar img {
+    width: 40px;
 }
 .nav-item {
-    padding: 5px;
     cursor: pointer;
 }
 .nav-item h1 {
     font-size: 150%;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 .nav-item h1 a {
     color: #333333;
@@ -145,7 +157,7 @@ code {
 
     /* Center Piece */
     .center-piece div img {
-        width: 60px;
+        width: 40px;
     }
     .center-piece div h1 {
         font-size: 220%;
@@ -155,17 +167,14 @@ code {
     }
 
     /* Nav */
-    .nav-bar {
-        flex-wrap: wrap;
+    .nav-bar-left {
+        width: 250px;
     }
     .nav-item {
-        padding: 0px;
         padding-left: 2px;
         padding-right: 2px;
     }
     .nav-item h1 {
         font-size: 130%;
-        margin-top: 5px;
-        margin-bottom: 5px;
     }
 }
