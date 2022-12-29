@@ -5,7 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="01390805-5d80-47c1-907b-606756586a7b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/projects/gptjournal.html" beforeDir="false" afterPath="$PROJECT_DIR$/projects/gptjournal.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/js/Navbar.js" beforeDir="false" afterPath="$PROJECT_DIR$/js/Navbar.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/styles/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/styles/styles.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,7 +105,7 @@
       <workItem from="1671463754908" duration="10000" />
       <workItem from="1672230595886" duration="4194000" />
       <workItem from="1672234948483" duration="3984000" />
-      <workItem from="1672308311439" duration="16158000" />
+      <workItem from="1672308311439" duration="17179000" />
     </task>
     <servers />
   </component>
