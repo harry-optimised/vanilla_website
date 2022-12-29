@@ -93,7 +93,7 @@ code {
 /* Nav */
 .nav-bar {
     display: flex;
-    width: 30%;
+    width: 40%;
     margin: auto;
     justify-content: space-around;
 }
