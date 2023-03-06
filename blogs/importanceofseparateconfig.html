@@ -1,0 +1,142 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Separating Application and Configuration</title>
+        <meta name="description"
+              content="I broke the rule of separating config and application, and ended up
+                        shooting myself in the foot with a particularly nasty bug.">
+        <meta name="author" content="Harry Turner">
+        <meta name="keywords" content="configuration, application, bug">
+        <link rel="icon" type="image/ico" href="../images/favicon.ico">
+        <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+        <link rel=“canonical” href=“https://www.harrysprojects.com/blogs/seriousactivereading.html” />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="../js/Navbar.js" type="text/javascript" defer></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-180754451-1');
+        </script>
+    </head>
+    <body>
+        <div class="page-container">
+
+            <nav-bar></nav-bar>
+
+            <div>
+                <h1>Separating Application and Configuration</h1>
+                <p><i>6th March 2023</i></p>
+
+                <p>
+                    I metaphorically shot myself in the foot the other day. I took a shortcut
+                    which I thought would be harmless but ended up wasting almost half a day
+                    tracking down a particularly nasty bug, unfortunately all
+                    self-inflicted. I'll describe the bug first, then end with a short
+                    discussion on my "shortcut" and how it should have been done properly.
+                </p>
+                <h3>The Problem</h3>
+                <p>
+                    I have an application called the Processor (I can't give the fullname as
+                    it's commercially sensitive). The Processor is launched onto AWS Batch as a
+                    short running job that connects to an SQS queue to pull off work items and
+                    process them. The work items would come in sets all related to each other,
+                    and the output would be a set of artifacts for that set. So for example,
+                    the Processor might see work items A1, A2, A3, A4, A5, and spit out A9 and
+                    A10 as a result, then it might see B1, B2, B3, B4, B5 and spit out B9 and
+                    B10. Generally it was a very basic stream processing system and looked
+                    something like the following.
+                </p>
+                <div class="image-container">
+                    <img src="../images/blogs/importanceofseparateconfig/system.png"/>
+                    <p><i>Visual Depiction of the Process.</i></p>
+                </div>
+                <p>
+                    I launched the application and everything appeared to work. I added
+                    monitoring and decided to check that the relevant outputs were being
+                    produced. To my surprise I found that the Processor was only outputting
+                    some expected artifacts.
+                </p>
+                <div class="image-container">
+                    <img src="../images/blogs/importanceofseparateconfig/missing_outputs.png"/>
+                    <p><i>What I Observed.</i></p>
+                </div>
+                <p>
+                    This is bizarre I thought to myself. I checked the queue and confirmed that
+                    all the expected inputs were flowing through it. They were even being taken
+                    off the queue at regular intervals. It must be the Processor I thought, so
+                    I spun up an instance locally, captured a copy of the input work items and
+                    played them back through the Processor on my local machine. Everything
+                    worked perfectly and all the outputs were produced.
+                </p>
+                <p>
+                    So it worked fine locally, but in the cloud it was missing half of the
+                    outputs. I added some logs to the Processor and discovered that it was only
+                    processing some inputs, and yet they were all being taken off the
+                    queue. It was as if a phantom processor was secretly taking them off the
+                    queue as well.
+                </p>
+                <p>
+                    Then it hit me. We had a separate testing environment which runs a
+                    full copy of our production system (albeit on fewer resources). I checked
+                    the testing environment and sure enough, there was <i>another</i> copy of
+                    the Processor, <b><i>pulling from the same queue.</i></b>
+                </p>
+                <div class="image-container">
+                    <img src="../images/blogs/importanceofseparateconfig/hidden.png"/>
+                    <p><i>What was Really Happening.</i></p>
+                </div>
+                <p>
+                    I had hard-coded the queue identifier for the Processor so that no matter
+                    where the application was launched, it would connect to the production
+                    queue of work items. The output queue <i>was configured correctly</i> which
+                    is why I wasn't seeing the outputs, they were being sent to the output
+                    queue in the test environment.
+                </p>
+                <p>
+                    I made the queue identifier a configuration value and updated the test
+                    environment processor to use its test input queue, and everything began to
+                    work properly.
+                </p>
+                <h3>Conclusion</h3>
+                <p>
+                    As soon as I observed the second Processor I knew what I'd done wrong. I
+                    know how important it is to not bake configuration into your applications.
+                    I had rushed and hard coded it in order to move fast, and that had
+                    backfired and I ended up wasting my own time. Separate your configuration
+                    from the application!
+                </p>
+
+                <br />
+                <div id="disqus_thread"></div>
+                <script>
+                    var disqus_config = function () {
+                    this.page.url = "https://www.harrysprojects.com/blogs/importanceofseparateconfig.html";
+                    this.page.identifier = "importanceofseparateconfig";
+                    };
+
+                    (function() { // DON'T EDIT BELOW THIS LINE
+                    var d = document, s = d.createElement('script');
+                    s.src = 'https://harrysprojects-com.disqus.com/embed.js';
+                    s.setAttribute('data-timestamp', +new Date());
+                    (d.head || d.body).appendChild(s);
+                    })();
+                </script>
+                <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+                <br />
+                <br />
+            </div>
+
+        </div>
+    </body>
+    <footer>
+    </footer>
+</html>
