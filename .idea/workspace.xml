@@ -5,12 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="01390805-5d80-47c1-907b-606756586a7b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/blogs/importanceofseparateconfig.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/blogs/importanceofseparateconfig/hidden.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/blogs/importanceofseparateconfig/missing_outputs.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/images/blogs/importanceofseparateconfig/system.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,7 +50,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "/home/harry/repos/vanilla_website/blogs",
+    "last_opened_file_path": "/home/harry/platform/inspect-react",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -111,7 +106,7 @@
       <workItem from="1672403009308" duration="1331000" />
       <workItem from="1672404657333" duration="199000" />
       <workItem from="1672755046085" duration="8000" />
-      <workItem from="1678099195619" duration="2980000" />
+      <workItem from="1678099195619" duration="4229000" />
     </task>
     <servers />
   </component>
