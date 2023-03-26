@@ -1,0 +1,119 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Bootstrapping a Home Kubernetes Cluster on Ubuntu 22.04</title>
+        <meta name="description"
+              content="I recently built a home Kubernetes cluster on cheap hardware and am writing down the 
+              process I followed so that others are able to do the same.">
+        <meta name="author" content="Harry Turner">
+        <meta name="keywords" content="copilot, variables, naming">
+        <link rel="icon" type="image/ico" href="../images/favicon.ico">
+        <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+        <link rel=“canonical” href=“https://www.harrysprojects.com/blogs/seriousactivereading.html” />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="../js/Navbar.js" type="text/javascript" defer></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-180754451-1');
+        </script>
+    </head>
+    <body>
+        <div class="page-container">
+
+            <nav-bar></nav-bar>
+
+            <div>
+                <h1>Setting up a home Kubernetes Cluster using Ubuntu 22.04 and Kubeadm</h1>
+                <p><i>26th March 2023</i></p>
+                
+                <p>
+                  I spent a few hours setting up a cluster on some cheap hardware I picked up from a local reuse shop.
+                  I wanted to write down the process I followed so that others are able to do the same.
+                  There are plenty of decent guides already out there, but I didn't find any that covered the whole process from start to finish.
+                  Therefore, in the spirit of <i>building on the shoulders of giants</i> I am contributing this short guide which connects a few existing guides and fills in some of the gaps!
+                </p>
+
+                <p><i>This is a guide on setting up a multi-node Kubernetes cluster using Kubeadm, on Ubuntu 22.04, as of March 2023.</i></p>
+               
+                <h3>Preliminaries</h3>
+                <p>
+                  A cluster is, by definition, composed of multiple nodes.
+                  You can can of course use Raspberry Pis, but I wanted something slightly more powerful, so I want to share the following "top tip".
+                  In Bristol, UK, there is a shop called <a href="https://bristolwastecompany.co.uk/reuse/">Reuse</a> who take stuff that people have thrown away at the dump and sell it for pennies.
+                  For whatever reason, local companies throw away all sorts of perfectly good hardware, and I've been able to pick up a few reasonable machines on the cheap.
+                  Are they reliable? Probably not, but running apps reliably on top of cheap, unreliable hardware is the whole point of Kubernetes.
+                  Presumably there are similar shops in other countries.
+                </p>
+                <div class="image-container">
+                  <div style="display:flex;flex-direction:row;justify-content:space-around">
+                    <img style="width:40%" src="../images/blogs/kubernetesmarch2023/IMG_3569.JPG"/>
+                    <img style="width:40%" src="../images/blogs/kubernetesmarch2023/IMG_3570.JPG"/>
+                  </div>
+                  <p><i>My two "trusty" worker nodes.</i></p>
+                </div>
+                <h3>Machine Setup</h3>
+                <p>
+                  I installed a fresh Ubuntu 22.04 on all machines, using the standard USB installation method.
+                  This guide, <a href="https://phoenixnap.com/kb/ubuntu-22-04-lts">How to Install Ubuntu 22.04 LTS Desktop</a> is good, although note that you may not need to add a swap partition since the default Kubernetes installation will not use it.
+                </p>
+                <p>
+                  All machines are networked via cable.
+                  You could use WiFi, but wired is faster and more reliable for a cluster.
+                  I gave each machine a static IP address, you can do this in the networking settings GUI or using a tool like <code>nmcli</code>.
+                  Follow <a href="https://www.tecmint.com/nmcli-configure-network-connection/">How to Configure Network Connection Using ‘nmcli’ Tool</a> which worked on Ubuntu 22.04, I took the values for the default gateway from my existing connection.
+                  You can optionally change the hostname of each machine if you want.
+                </p>
+                <p>
+                  I installed <code>openssh-server</code> on each machine to allow me to use SSH. 
+                  This made it easy to have three terminals open in front of me later on to do the actual K8s installation from one screen.
+                  The top ranked google result, <a href="https://www.f>This guide<osslinux.com/78569/install-and-enable-openssh-on-ubuntu.htm">Install and Enable OpenSSH on Ubunutu</a> is a perfectly fine tutorial, however be careful if it mentions enabling <code>ufw</code> as you'll also need to ensure the correct ports are open for Kubernetes. 
+                  <code>ufw</code> stands for <i>uncomplicated firewall</i>, and is a simple firewall tool for Ubuntu.
+                  If your worker nodes can't communicate with the master node, double check your <code>ufw</code> settings.
+                </p>
+                <h3>Installing Kubernetes</h3> 
+                <p>
+                  With all three machines setup, I opened three terminals (I used tmux, although you could just open three windows) and SSH'd into each machine from my laptop.
+                  The guide I followed is <a href="https://devopscube.com/setup-kubernetes-cluster-kubeadm/">How To Setup Kubernetes Cluster Using Kubeadm</a>.  
+                  This guide is very good, and it worked for my setup. 
+                  I only changed a few bits on the networking because of the subnet my nodes were on.
+                </p>
+                <h5>Networking</h5>
+                <p>
+                  The DevOpsCube guide proposes a 10.X.X.X network for the nodes and 192.168.X.X for the pods, however my nodes were all on my local 192.168.X.X network.
+                  To get around this, I placed the nodes on the 192.168.0.X subnet when I specified their static IPs, and configured the pod networking range to be 192.168.128.0/17. 
+                  This funky CIDR notation still gives me over 32,000 addresses for pods, whilst <u>not overlapping with the node subnet</u>. 
+                  The pod networking range must be specified when you start the control plane in the <code>POD_CIDR</code> environment variable.
+                  I also followed different instructions when installing Calico because I needed to edit the configuration.
+                  Instead of applying the resource specified in the DevOpsCube guide, I followed the Calico installation instructions in the <a href="https://docs.tigera.io/calico/latest/getting-started/kubernetes/self-managed-onprem/onpremises">Calico docs</a>.
+                  These instructions will first instruct you to download an operator and a custom resource file, you can change the pod network range in this custom resource file.
+                  Finally, you create Calico using that custom operator.
+                  I had to restart the <code>coredns</code> deployment before the pods would run.
+                </p>
+                <h3>Success</h3>
+                <p>
+                  I followed that guide to the end and was able to get a working cluster.
+                </p>
+                <div class="image-container">
+                  <img style="width:100%" src="../images/blogs/kubernetesmarch2023/nodes.png"/>
+                  <p><i>My cluster running on three nodes. The node names are all taken from the brands of the cases they came in.</i></p>
+                </div>
+
+                <br />
+
+                <br />
+            </div>
+
+        </div>
+    </body>
+    <footer>
+    </footer>
+</html>
