@@ -1,0 +1,69 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Anki Maker</title>
+        <meta name="description" content="Introducing Anki Card Maker, an innovative tool leveraging OpenAI's GPT-3.5-turbo model for automating the creation of Anki flashcards from online articles.">
+        <meta name="author" content="Harry Turner">
+        <meta name="keywords" content="Anki, flashcards, OpenAI, GPT-3.5-turbo, language models, automation, education, learning tool, online articles">
+
+        <link rel="icon" type="image/ico" href="../images/favicon.ico">
+        <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+        <link rel=“canonical” href=“https://www.harrysprojects.com/projects/artificial.html” />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="../js/Navbar.js" type="text/javascript" defer></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-180754451-1');
+        </script>
+    </head>
+    <body>
+        <div class="page-container">
+
+            <nav-bar></nav-bar>
+
+            <div>
+                <h1>Anki Card Maker</h2>
+                <p><i>22nd May 2023</i></p>
+
+                <p>A quick app I knocked up to automate the process of creating Anki Flashcards from online articles. I use Anki <u>a lot</u> for remembering stuff, and if I read a good online article that I want to remember, I'll try and capture at least three new Anki cards from it. Most of the time, the act of thinking about the card and writing it is helpful for the remembering process, but sometimes it's good to get a bit of help so I started experimenting with ChatGPT. LLMs work well for this, it's essentially just summarisation after all, but the copying and pasting of the prompt and article content got tedious fast. Hence... this app!</p>
+                <p>Please feel free to copy/fork/clone/modify etc for your own purposes. It's in Python and HTML so should be quick and easy to customise. I wrote it as a web app because the UI is just nicer to use. You can run it from a virtual environment or in a docker container.</p>
+                <p><a href="https://github.com/harry-optimised/anki-maker">Anki Card Maker</a></p>
+                <h3>Interesting Things to Try:</h3>
+                <p> - Experiment with the prompt. I find that it sometimes generates rubbish questions like "What did the author think of X" which is useful for a flashcard unless you know what article it's about..</p>
+                <p> - An extension that exports to Anki itself would be cool.</p>
+              
+                <br />
+                <div id="disqus_thread"></div>
+                <script>
+                    var disqus_config = function () {
+                    this.page.url = "https://www.harrysprojects.com/projects/wordle.html";
+                    this.page.identifier = "wordle";
+                    };
+
+                    (function() { // DON'T EDIT BELOW THIS LINE
+                    var d = document, s = d.createElement('script');
+                    s.src = 'https://harrysprojects-com.disqus.com/embed.js';
+                    s.setAttribute('data-timestamp', +new Date());
+                    (d.head || d.body).appendChild(s);
+                    })();
+                </script>
+                <noscript>Please enable JavaScript to view the <a target="_blank" href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+                <br />
+                <br />
+            </div>
+
+        </div>
+    </body>
+    <footer>
+    </footer>
+</html>
