@@ -1,0 +1,212 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Python Project Setup</title>
+        <meta name="description" content="My standard Python project setup.">
+        <meta name="author" content="Harry Turner">
+        <meta name="keywords" content="python, project, setup, flake8, mypy, github actions, CI, CD, docker, lint">
+        <link rel="icon" type="image/ico" href="../images/favicon.ico">
+        <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+        <link rel=“canonical” href=“https://www.harrysprojects.com/articles/rcnn.html” />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script src="../js/Navbar.js" type="text/javascript" defer></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-180754451-1');
+        </script>
+    </head>
+    <body>
+        <div class="page-container">
+
+            <nav-bar></nav-bar>
+
+            <div>
+                <h1>Current Approach to Testing in Python</h1>
+                <p><i>Updated 3rd January 2022</i></p>
+
+                <h3>Introduction</h3>
+                <h3>Coordinated Workflows</h3>
+                <p>
+                  Consider the following Django models I created for a recent project:
+                </p>
+                <pre>
+                  <code>
+                    class TimesheetEntry(models.Model):
+                      """A timesheet entry represents a period of time worked by an employee."""
+                      id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4) 
+                      timesheet = models.ForeignKey('Timesheet', on_delete=models.CASCADE, related_name="entries")
+                      start_datetime = models.DateTimeField()
+                      end_datetime = models.DateTimeField()
+
+                      def __str__(self):
+                        return f"TimesheetEntry({self.start_datetime}, {self.end_datetime})"
+
+                    class Timesheet(models.Model):
+                      """A timesheet represents a contract between an employee and an employer."""
+                      id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
+                      employee = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="timesheets_as_employee", null=True)
+                      employer = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="timesheets_as_employer", null=True)
+                      start_date = models.DateField()
+                      end_date = models.DateField()
+
+                      def __str__(self):
+                        return f"Timesheet({self.employee}, {self.employer}"
+                  </code>
+                </pre>
+                <p>
+                  I'd like to test that I can:
+                </p>
+                <ol>
+                  <li>Create a Timesheet</li>
+                  <li>Create a TimesheetEntry and add it to the Timesheet</li>
+                  <li>Edit the TimesheetEntry</li>
+                  <li>Delete the TimesheetEntry</li>
+                  <li>Delete the Timesheet</li>
+                </ol>
+                <p>
+                  I don't want to do it all in one test though, I need to be able to test each part separately (and run in parallel if possible).
+                  The first test is okay, because it doesn't depend on anything, but the second test requires that a) creating a timesheet works,
+                  and b) it needs the created timesheet in order to add an entry to it. The third, fourth and fifth tests are even worse, they need
+                  a timesheet with a timesheet entry already added to it before they can run.
+                </p>
+                <p>
+                  My current approach to handling situations like these are to identify the 'building blocks' which are the objects required for
+                  the tests to run. I then both test the building blocks directly, and then create Pytest fixtures for them. The idea is that
+                  the building block tests run first, if they pass then I know my fixtures are probably okay, therefore it's safe to proceed with
+                  the more complex tests that use these fixtures as a foundation. In this way I build up a hierarchy of tests, the smallest will
+                  run first (and fail first), the larger tests will only run if the smaller ones pass, they progressively build up the complexity 
+                  of the workflow under test until I've tested the whole thing. Here's an example.
+                </p>
+                <pre>
+                  <code>
+                        @pytest.fixture
+			def employee():
+			    User = get_user_model() 
+			    user = User.objects.create_user(username='employee', password='password')
+			    return user
+
+
+			@pytest.fixture
+			def employer():
+			    User = get_user_model() 
+			    user = User.objects.create_user(username='employer', password='password')
+			    return user
+
+
+			# Building Block - Timesheet
+			############################
+
+			@pytest.mark.django_db
+			def test_create_new_timesheet(employee, employer):
+			    """Creating a new timesheet should be successful."""
+
+			    # Given - A user exists.
+
+			    # When - A timesheet is created.
+			    timesheet = Timesheet.objects.create(
+				employee=employee,
+				employer=employer,
+				start_date=datetime.date(2024, 1, 1),
+				end_date=datetime.date(2024, 1, 31),
+			    )
+
+			    # Then - The timesheet is created.
+			    assert timesheet.id is not None
+
+			@pytest.fixture
+			def timesheet(employee, employer):
+			    timesheet = Timesheet.objects.create(
+				employee=employee,
+				employer=employer,
+				start_date=datetime.date(2024, 1, 1),
+				end_date=datetime.date(2024, 1, 31),
+			    )
+			    return timesheet
+
+
+			# Building Block - TimesheetEntry
+			#################################
+
+			@pytest.mark.django_db
+			def test_create_new_timesheet_entry(timesheet):
+			    """Creating a new timesheet entry should be successful."""
+
+			    # Given - A timesheet exists.
+
+			    # When - A timesheet entry is created.
+			    timesheet_entry = TimesheetEntry.objects.create(
+				timesheet=timesheet,
+				start_datetime=datetime.datetime(2024, 1, 1, 9, 0),
+				end_datetime=datetime.datetime(2024, 1, 1, 17, 0),
+			    )
+
+			    # Then - The timesheet entry is created.
+			    assert timesheet_entry.id is not None
+
+
+			@pytest.fixture
+			def timesheet_entry(timesheet):
+			    timesheet_entry = TimesheetEntry.objects.create(
+				timesheet=timesheet,
+				start_datetime=datetime.datetime(2024, 1, 1, 9, 0),
+				end_datetime=datetime.datetime(2024, 1, 1, 17, 0),
+			    )
+			    return timesheet_entry
+
+
+			# Complex Test - Edit TimesheetEntry
+			####################################
+
+			@pytest.mark.django_db
+			def test_edit_timesheet_entry(timesheet_entry):
+			    """Editing a timesheet entry should be successful."""
+
+			    # Given - A timesheet entry exists.
+
+			    # When - The timesheet entry is edited.
+			    timesheet_entry.start_datetime = datetime.datetime(2024, 1, 1, 8, 0)
+			    timesheet_entry.end_datetime = datetime.datetime(2024, 1, 1, 16, 0)
+			    timesheet_entry.save()
+
+			    # Then - The timesheet entry is edited.
+			    assert timesheet_entry.start_datetime == datetime.datetime(2024, 1, 1, 8, 0)
+			    assert timesheet_entry.end_datetime == datetime.datetime(2024, 1, 1, 16, 0)
+		    </code>
+		  </pre>
+                <br />
+                <div id="disqus_thread"></div>
+                <script>
+                    var disqus_config = function () {
+                    this.page.url = "https://www.harrysprojects.com/blogs/pythonproject.html";
+                    this.page.identifier = "pythonproject";
+                    };
+
+                    (function() { // DON'T EDIT BELOW THIS LINE
+                    var d = document, s = d.createElement('script');
+                    s.src = 'https://harrysprojects-com.disqus.com/embed.js';
+                    s.setAttribute('data-timestamp', +new Date());
+                    (d.head || d.body).appendChild(s);
+                    })();
+                </script>
+                <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+                <br />
+                <br />
+            </div>
+
+        </div>
+    </body>
+    <footer>
+    </footer>
+</html>

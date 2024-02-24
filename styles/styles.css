@@ -4,32 +4,32 @@ h1 {
     font-family: Manrope;
     font-weight: 500;
     font-size: 200%;
-    color: #333333
+    color: #2F344C
 }
 h3 {
     font-family: Manrope;
     font-weight: 500;
     font-size: 150%;
-    color: #333333
+    color: #2F344C
 }
 h5 {
     font-family: Lora;
     font-weight: 500;
     font-size: 100%;
-    color: #333333;
+    color: #2F344C;
 }
 p {
     font-family: Lora;
     font-size: 110%;
-    color: #333333;
+    color: #2F344C;
     line-height: 1.5;
 }
 a:link {
-    color: #ee4368;
+    color: #5B85AA;
     text-decoration: none;
 }
 a:visited {
-    color: #ee4368;
+    color: #5B85AA;
     text-decoration: none;
 }
 a:hover {
@@ -37,7 +37,7 @@ a:hover {
 }
 pre {
     font-size : 100%;
-    color: #ee4368;
+    color: #5B85AA;
 }
 code {
     color: #666666;
@@ -84,7 +84,7 @@ hr {
     display: flex;
     justify-content: start;
     padding-top: 20px;
-    background-color: black;
+    background-color: white;
 }
 .center-piece div {
     display: flex;
@@ -108,7 +108,7 @@ hr {
     width: 100%;
     align-items: center;
     justify-content: space-between;
-    background-color: black;
+    background-color: white;
 }
 .nav-bar-left {
     display: flex;
@@ -121,16 +121,16 @@ hr {
 }
 .nav-item {
     cursor: pointer;
-    padding: 8px
+    padding: 0px
 }
 .nav-item h1 {
     font-size: 150%;
     margin-top: 0px;
     margin-bottom: 0px;
-    color: #FFFFFF;
+    color: #2F344C;
 }
 .nav-item h1 a {
-    color: #FFFFFF;
+    color: #2F344C;
 }
 
 /* Page */
