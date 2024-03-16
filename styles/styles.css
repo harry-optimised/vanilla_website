@@ -9,14 +9,28 @@ h1 {
 h3 {
     font-family: Manrope;
     font-weight: 500;
-    font-size: 150%;
+    font-size: 1.5rem;
     color: #2F344C
+}
+h4 {
+    font-family: Manrope;
+    font-weight: 500;
+    font-size: 1.4rem;
+    color: #2F344C;
+    margin-top: 8px;
+    margin-bottom: 8px;
 }
 h5 {
     font-family: Lora;
     font-weight: 500;
     font-size: 100%;
     color: #2F344C;
+}
+h6 {
+    margin-top : 0px;
+    font-family: Lora;
+    font-weight: 500;
+    font-size: 1.6rem;
 }
 p {
     font-family: Lora;
@@ -78,6 +92,23 @@ hr {
     opacity: 0.5;
 }
 
+/* Content Cards */
+.content-card {
+    display: flex;    
+    flex-direction: row;
+}
+.content-card-left {
+    width: 30%;
+}
+.content-card-left img {
+    width: 100%;
+    height: 100%;
+}
+.content-card-right {
+    width: 70%;
+    padding-left: 20px;
+}
+
 /* Center Piece */
 .center-piece {
     width: 100%;
@@ -104,24 +135,33 @@ hr {
 
 /* Nav */
 .nav-bar {
+    user-select: none;
     display: flex;
     width: 100%;
+    flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    background-color: white;
 }
 .nav-bar-left {
     display: flex;
-    width: 380px;
+    flex-direction: column;
     justify-content: flex-start;
+    align-items: flex-start;
+}
+.nav-bar-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
     align-items: center;
+    width: 100%;
 }
 .nav-bar img {
     width: 40px;
 }
 .nav-item {
     cursor: pointer;
-    padding: 0px
+    padding: 0px;
+    margin-right: 16px;
 }
 .nav-item h1 {
     font-size: 150%;
@@ -131,6 +171,46 @@ hr {
 }
 .nav-item h1 a {
     color: #2F344C;
+}
+.hamburger {
+    display: none;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    display: none;
+    cursor: pointer;
+    user-select: none;
+    height: 100px;
+}
+.nav-menu {
+    display: none;
+    user-select: none;
+    position: absolute;
+    left: -100%;
+    top: 0;
+    display: flex;
+    padding-top: 64px;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    background-color: #2F344C;
+    height: 100vh;
+    z-index: 100;
+}
+.nav-menu hr {
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 0px;
+    opacity: 0.2;
+}
+.nav-menu a {      
+    cursor: pointer;
+    padding: 0px 20px;
+    text-decoration: none;
+    color: white;
+    border: "1px solid #2F344C";
 }
 
 /* Page */
@@ -148,7 +228,7 @@ hr {
         font-size: 190%;
     }
     h3 {
-        font-size: 160%;
+        font-size: 1.2rem;
     }
     h5 {
         font-size: 120%;
@@ -168,6 +248,19 @@ hr {
         padding: 20px;
     }
 
+    /* Content Cards */
+    .content-card {
+        display: flex;    
+        flex-direction: column;
+    }
+    .content-card-left {
+        width: 100%;
+    }
+    .content-card-right {
+        width: 100%;
+        padding-left: 0px;
+    }
+
     /* Center Piece */
     .center-piece div h1 {
         font-size: 250%;
@@ -177,14 +270,26 @@ hr {
     }
 
     /* Nav */
+    .nav-bar {
+        height: 48px;
+    }
+    .hamburger {
+        display: block;       
+    }
+    .hamburger.active {
+        color: white;
+    }
     .nav-bar-left {
-        width: 250px;
+        display: none;
     }
-    .nav-item {
-        padding-left: 2px;
-        padding-right: 2px;
+    .nav-menu {       
+        left: -100%;   
+        transition: left 0.3s ease;
     }
-    .nav-item h1 {
-        font-size: 130%;
+    .nav-menu.active {
+        left: 0;
+    }
+    .nav-bar-right {
+        display: none;
     }
 }

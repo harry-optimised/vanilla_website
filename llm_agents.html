@@ -4,7 +4,7 @@
 
     <head>
         <meta charset="utf-8">
-        <title>System Design Series</title>
+        <title>LLM Agent Series</title>
         <meta name="description" content="Machine Learning articles.">
         <meta name="author" content="Harry Turner">
         <meta name="keywords" content="machine learning, deep learning, object detection">
@@ -35,30 +35,29 @@
             <nav-bar></nav-bar>
 
             <div style="width: 100%;">
-                <h1>System Design Series</h1>
+                <h1>LLM Agents Series</h1>
 
                 <p>
-                    You know that feeling when you're looking at a problem and you think "I'm sure I've seen this
-                    before", but you can't quite remember the details?
-                    This series is a collection of problem/solution patterns in System Design that I've personally
-                    encountered. I wrote them up so that I can refer back to them
-                    when I need to, and I hope they're useful & engaging to you too.
+                    Something I've wanted to do for a long time is explore the use of Large Language Models in the
+                    construction of autonomous agents, where you
+                    use the LLM as the "brain" and build scaffolding around it to let it interact with the world. In
+                    this case that world is minecraft, partly
+                    because there are already tools for creating bots for the game, and partly because the Voyager paper
+                    deployed LLM agents into minecraft. There's
+                    also something really quite satisfying about watching your agent explore a proper 3D world.
+                </p>
+                <p>
+                    I've only just started in this space, so expect more content to follow soon. The rough guide will be
+                    to start with a simple environment that we
+                    can use to control the agent, and then we'll build up the complexity of the agent's tasks. Finally
+                    we'll look at the Voyager paper itself.
                 </p>
                 <br />
                 <ul>
                     <li>
-                        <article-card title="Editing Complex Configuration" started="February 2023"
-                            description="A common problem users face in MLOps is configuring workflows, which quickly gets complex as the number of options grows. This is a review of some of the techniques I've used for simplifying the editing of large, complex configuration files."
-                            image-src="images/headers/editing_complex_configuration.png"
-                            url="articles/complex_configuration.html" badges="front_end,human_computer_interaction" />
-
-                    </li>
-                    <li>
-                        <article-card title="Patching Auto-Incrementing IDs into an Existing System"
-                            started="September 2023" description="When we migrated our ML Experiment Tracking system to a new platform, we lost some nice UX features because IDs switched from auto-incrementing to UUID.
-                            This article explores how we solved this with DynamoDB and atomic counters."
-                            image-src="images/headers/auto_incrementing_ids.png"
-                            url="articles/auto_incrementing_ids.html" badges="back_end,human_computer_interaction" />
+                        <article-card title="Setting up the Playground" started="Started January 2024" description="To begin, we'll setup Minecraft, Mineflayer, and build a simple server for controlling the agent. 
+                            This will let us get up and running quickly whilst understanding fully what is going on."
+                            image-src="images/headers/llm_agents.png" url="articles/llm_playground.html" />
 
                     </li>
 

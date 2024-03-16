@@ -1,0 +1,169 @@
+<!doctype html>
+
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <title>Patching Auto-Incrementing IDs into an Existing System</title>
+    <meta name="description" content="Patching Auto-Incrementing IDs into an Existing System.">
+    <meta name="author" content="Harry Turner">
+    <meta name="keywords"
+      content="dynamodb, auto-incrementing id, auto-incrementing, auto, uuid, atomic count, clearml, system design">
+    <link rel="icon" type="image/ico" href="../images/favicon.ico">
+    <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet">
+    <link rel=“canonical” href=“https://www.harrysprojects.com/articles/spp.html” />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="../js/Navbar.js" type="text/javascript" defer></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      gtag('js', new Date());
+
+      gtag('config', 'UA-180754451-1');
+    </script>
+  </head>
+
+  <body>
+    <div class="page-container">
+
+      <nav-bar></nav-bar>
+
+      <div>
+        <h1>Patching Auto-Incrementing IDs into an Existing System.</h1>
+        <img src="https://img.shields.io/badge/back_end-315C2B" />
+        <img src="https://img.shields.io/badge/human_computer_interaction-teal" />
+        <p><i>September 2023</i></p>
+        <h3 id="problem">The Problem</h3>
+        <p>
+          We recently migrated our ML Experiment Tracking to a new system <a
+            href="https://clear.ml/docs/latest/">ClearML</a>. The old proprietary system stored all experiments in a
+          database using auto incrementing integer IDs. There were over 50,000 experiments when we
+          migrated. The new system referenced experiments by a unique ID (UUID), which has advantages from a system
+          design perspective but introduces drawbacks in usability. A UUID might look like
+          <code>2b1e7e88-279c-4f42-bedc-fb46f9f79f8e</code> whereas an auto-incrementing ID
+          is just a number, e.g 100, 4578, etc.
+        </p>
+        <p>
+          UUIDs are preferred in most cases since they are both more secure, and easier to work with in
+          distributed systems. They’re more secure because they don’t tell you anything about the items
+          in your database, such as their order, or number. They’re easier to work with because you can generate them
+          from anywhere without having to place strong consistency requirements on your database.
+        </p>
+        <p>
+          However, auto-incrementing IDs have a UX advantage, they can be easier to refer to, and they tell you
+          something about the order of the items in the database. The team has gotten used to referring to experiments
+          by their five digit ID, and asked if we could bring that functionality to the new system. Note that because
+          our system is internal, the security risk from knowing the order of experiments is not a concern.
+        </p>
+        <p>Why not just refer to them by their names? Well you can, but naming is hard. Names can be verbose,
+          and they're are not always unique. Even if they’re literally unique, they might appear to be very semantically
+          similar. For example, make sure you don’t confuse <i>"baseline object detection train head mounted"</i> with
+          <i>"head mounted baseline object detection train"</i> etc...
+        </p>
+        <p>So, the new system uses UUIDs but the team are frustrated with the poor usability, we can’t change
+          them
+          because we don’t have access to the database (nor do we want it, we pay them to manage that for us).
+          The
+          solution was to augment the names of the experiments which are editable, to inject some kind of useful
+          identifier.</p>
+        <h3 id="solution">The Solution</h3>
+        <p>
+          The ClearML API provides us a way to programmatically change names of experiments. After a short
+          team consultation we opted for an approach that would update the name of the experiment once it started
+          running and prepend an auto-incrementing number. For example, a name would end up looking like
+          <code>5482: My Experiment</code>. This wasn't perfect, the name could be changed simply by editing it in
+          the UI, so it wasn't a hard ID, but we were working with an internal team who were happy to follow the
+          rule that you don't change the number once it's been added.
+        <p>
+          To implement this, we needed a service that gave us strongly consistent auto incrementing numbers that we
+          could then attach to our experiments (more on that shortly). At first I went down the route of building a
+          microservice for this with an API that allowed fetching of the next ID, it would have to be backed by a
+          database of course, so that all had to be created and stored. It felt like overkill for what is essentially
+          just a number. So, we looked for an off the shelf solution to do this for us.
+        </p>
+        <p>
+          I didn&#39;t want to have to setup and manage my own database, so I picked a tool I&#39;ve used before that is
+          both powerful, and easy to get started with, <a href="https://aws.amazon.com/dynamodb/">DynamoDB</a>. I could
+          easily store a single key that tracked the latest ID, and simply fetch that via the existing AWS SDK. But
+          DynamoDB is not strongly consistent, if multiple experiments all began at the same time, would they all get
+          served the same number?
+        </p>
+        <p>
+          I then came across <a
+            href="https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/WorkingWithItems.html#WorkingWithItems.AtomicCounters">atomic
+            counters</a>, which are a feature of DynamoDB that allow you to increment or decrement a numeric value
+          using a single API call, but more importantly, they return the number they just incremented. From the docs:
+        </p>
+        <blockquote>
+          <p>
+            <i>
+              All write requests are applied in the order in which they were received.
+              With an atomic counter, the updates are not idempotent. In other words, the numeric value increments or
+              decrements each time you call <code>UpdateItem</code>.
+            </i>
+          </p>
+        </blockquote>
+
+
+        <p>
+          This is exactly what I needed, multiple calls to the service will all return the next value in the order that
+          they were received. So the solution was simple, some terraform to create the table with the single key, then
+          simply fetch from that table when I need the next value.
+        </p>
+        <h3>The Hook</h3>
+        <p>
+          The final trick was having this automatically added to experiments when they started. When we first began with
+          ClearML, we introduced our own library that called the ClearML API under the hood. For example, we have a
+          function called <code>create_and_setup_experiment</code> that simply starts the experiment on ClearML.
+        </p>
+        <p>
+          The reason for exposing that functionality through our own SDK rather than having users just call ClearML
+          directly, is that we now have a hook into the experiment creation process that we can add stuff to
+          over time. This is the same pattern used in ML training frameworks like PyTorch/Tensorflow such as
+          on_epoch_end, on_batch_start, etc. So all we needed to do was have this hook call the API to get the
+          next value, and then issue an API call to update the name, and we&#39;re done.
+        </p>
+        <p>
+          This solution has worked very well in practice since we implemented it.
+        </p>
+
+
+        <br />
+
+
+
+
+        <div id="disqus_thread"></div>
+        <script>
+          var disqus_config = function () {
+            this.page.url = "https://www.harrysprojects.com/articles/auto_incrementing_ids.html";
+            this.page.identifier = "auto_incrementing_ids";
+          };
+
+          (function () { // DON'T EDIT BELOW THIS LINE
+            var d = document, s = d.createElement('script');
+            s.src = 'https://harrysprojects-com.disqus.com/embed.js';
+            s.setAttribute('data-timestamp', +new Date());
+            (d.head || d.body).appendChild(s);
+          })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments
+            powered
+            by Disqus.</a></noscript>
+
+        <br />
+        <br />
+      </div>
+
+    </div>
+  </body>
+  <footer>
+  </footer>
+
+</html>
