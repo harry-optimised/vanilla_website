@@ -1,184 +1,210 @@
 <!DOCTYPE html>
 
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Editing Complex Configuration</title>
+    <meta
+      name="description"
+      content="A pattern for simplifying the editing of large, complex configuration."
+    />
+    <meta name="author" content="Harry Turner" />
+    <meta
+      name="keywords"
+      content="configuration, yaml, json, form, editor, validation, feedback, predictive editing, react, jsonschema, complex, human computer interaction"
+    />
+    <link rel="icon" type="image/ico" href="../images/favicon.ico" />
+    <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="canonical"
+      href="https://www.harrysprojects.com/articles/complex_configuration.html"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../js/Navbar.js" type="text/javascript" defer></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
 
-    <head>
-        <meta charset="utf-8" />
-        <title>Editing Complex Configuration</title>
-        <meta name="description" content="A pattern for simplifying the editing of large, complex configuration." />
-        <meta name="author" content="Harry Turner" />
-        <meta name="keywords"
-            content="configuration, yaml, json, form, editor, validation, feedback, predictive editing, react, jsonschema, complex, human computer interaction" />
-        <link rel="icon" type="image/ico" href="../images/favicon.ico" />
-        <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
-            rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
-            rel="stylesheet" />
-        <link rel="canonical" href="https://www.harrysprojects.com/articles/complex_configuration.html" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <script src="../js/Navbar.js" type="text/javascript" defer></script>
-        <!-- Global site tag (gtag.js) - Google Analytics -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag() {
-                dataLayer.push(arguments);
-            }
-            gtag("js", new Date());
+      gtag("config", "UA-180754451-1");
+    </script>
+  </head>
 
-            gtag("config", "UA-180754451-1");
-        </script>
-    </head>
+  <body>
+    <div class="page-container">
+      <nav-bar></nav-bar>
 
-    <body>
-        <div class="page-container">
-            <nav-bar></nav-bar>
+      <div>
+        <h1>Editing Complex Configuration</h1>
+        <img src="https://img.shields.io/badge/front_end-blue" />
+        <img
+          src="https://img.shields.io/badge/human_computer_interaction-teal"
+        />
+        <p><i>10th February 2024</i></p>
+        <h3 id="context">Context</h3>
+        <p>
+          At Ultraleap, I&#39;m part of a team building an internal research
+          platform for our engineers and data scientists. The platform&#39;s
+          main capabilities are storing and accessing large amounts of data, and
+          allowing users to execute custom code on AWS remote machines.
+        </p>
+        <h3 id="problem">Problem</h3>
+        <p>
+          There&#39;s one particular task that users run regularly on the
+          platform and it requires a huge amount of configuration to be
+          specified. I&#39;m talking hundreds of options organised
+          hierarchically. Even though it has defaults, understanding and
+          navigating the set of options is a challenge.
+        </p>
+        <p>
+          This complex configuration is currently provided in one big YAML file,
+          and whilst there are benefits to YAML (it can be version controlled,
+          it&#39;s human readable), it is also easy to make mistakes. The
+          feedback cycle from validating the YAML only after the task had
+          started was frustrating our users.
+        </p>
+        <p>
+          There is a general problem here. How to make it easy and less error
+          prone for users to edit large, complex configuration files.
+        </p>
 
-            <div>
-                <h1>Editing Complex Configuration</h1>
-                <img src="https://img.shields.io/badge/front_end-blue" />
-                <img src="https://img.shields.io/badge/human_computer_interaction-teal" />
-                <p><i>10th February 2024</i></p>
-                <h3 id="context">Context</h3>
-                <p>
-                    At Ultraleap, I&#39;m part of a team building an internal research
-                    platform for our engineers and data scientists. The platform&#39;s
-                    main capabilities are storing and accessing large amounts of data, and
-                    allowing users to execute custom code on AWS remote machines.
-                </p>
-                <h3 id="problem">Problem</h3>
-                <p>
-                    There&#39;s one particular task that users run regularly on the
-                    platform and it requires a huge amount of configuration to be
-                    specified. I&#39;m talking hundreds of options organised
-                    hierarchically. Even though it has defaults, understanding and
-                    navigating the set of options is a challenge.
-                </p>
-                <p>
-                    This complex configuration is currently provided in one big YAML file,
-                    and whilst there are benefits to YAML (it can be version controlled,
-                    it&#39;s human readable), it is also easy to make mistakes. The
-                    feedback cycle from validating the YAML only after the task had
-                    started was frustrating our users.
-                </p>
-                <p>
-                    There is a general problem here. How to make it easy and less error
-                    prone for users to edit large, complex configuration files.
-                </p>
-
-                <h3 id="solution">Parts of a Solution</h3>
-                <p><strong>YAML In - YAML Out</strong></p>
-                <p>
-                    Firstly, it's important to ensure the user doesn't lose any existing
-                    capabilities. They already work with YAML files so we should support
-                    import and export so that we seamlessly integrate with their existing
-                    tools.
-                </p>
-                <p><strong>Fully Featured YAML Editor</strong></p>
-                <p>
-                    Presumably the user already has a preferred text editor for working
-                    with YAML. I'm not proposing we replace it (see above). However, we'll
-                    see shortly that providing our own fully featured YAML editor has
-                    advantages. It should have enough features to not feel like a
-                    downgrade from their current editor. There are plenty of off-the-shelf
-                    components for this,
-                    <a href="https://www.npmjs.com/package/react-ace">React ACE Editor</a>
-                    for example.
-                </p>
-                <p><strong>UI Forms</strong></p>
-                <p>
-                    A set of configuration represented in YAML can also be represented as
-                    a form with text fields, check boxes, switches, drop down select
-                    menus, and more. This can be a more natural way to interact with the
-                    configuration (although not always). There are off-the-shelf
-                    components for building such forms from a configuration schema.
-                    <a href="https://github.com/rjsf-team/react-jsonschema-form">React JSONSchema Forms</a>
-                    for example.
-                </p>
-                <p><strong>Multiple Synchronised Representations</strong></p>
-                <p>
-                    This is a fancy way of saying that the form and the editor should be
-                    displayed side by side and kept in sync. If an option is changed in
-                    the form, it should update in the editor and vice versa. You can take
-                    any underlying state and represent it in multiple ways at the same
-                    time, it's a powerful way to provide the user the benefits of both.
-                    This pattern is used a lot, <a href="https://jwt.io/">jwt.io</a> for
-                    example for displaying encoded and decoded JWTs.
-                </p>
-                <p><strong>Instant Validation</strong></p>
-                <p>
-                    The best kind of feedback is instantaneous feedback. If I make a
-                    mistake I want to know whilst I'm still thinking about it. There's no
-                    reason a tool can't do the heavy lifting in the background, constantly
-                    validating that the configuration will work.
-                </p>
-                <p><strong>Inject Context</strong></p>
-                <p>
-                    We can take the above idea further. As well as telling the user when
-                    something is wrong, we can also give them information when it's right.
-                    For example, given the current configuration perhaps we could compute
-                    the estimated time the task will take. If we then display that
-                    information right there inside the config, the user can iterate on it
-                    in real time!
-                </p>
-                <div class="image-container">
-                    <img src="../images/articles/complex_configuration/inject_context.png" />
-                    <p>
-                        <i>Example of contextual feedback taken straight form our
-                            platform.</i>
-                    </p>
-                </div>
-                <p><strong>Predictive Editing</strong></p>
-                <p>
-                    If I'm editing a YAML file in VSCode with Github Copilot enabled, then
-                    it will attempt to predict what I'm going to type next. For configs
-                    like Kubernetes manifests it usually does a pretty good job. We could
-                    do the same thing easily with an LLM, or even with a few simple rules.
-                </p>
-                <h3 id="solution">Wrap Up</h3>
-                <p>
-                    We built a front-end app that displayed a dynamically generated form
-                    next to the YAML editor. The form was generated from a JSON schema
-                    that was derived from the task's configuration, and the form and
-                    editor were kept in sync. We validated the configuration in real time
-                    and provided contextual feedback as described above, but we could not
-                    justify predictive editing.
-                </p>
-
-                <p>
-                    The result was quick and easy to build, requiring only a bit of glue
-                    code to stitch the off-the-shelf components together. It allowed our
-                    users to rapidly build validated configuration files with fewer
-                    mistakes.
-                </p>
-                <br />
-
-                <br />
-                <div id="disqus_thread"></div>
-                <script>
-                    var disqus_config = function () {
-                        this.page.url = "https://www.harrysprojects.com/blogs/spp.html";
-                        this.page.identifier = "spp";
-                    };
-
-                    (function () {
-                        // DON'T EDIT BELOW THIS LINE
-                        var d = document,
-                            s = d.createElement("script");
-                        s.src = "https://harrysprojects-com.disqus.com/embed.js";
-                        s.setAttribute("data-timestamp", +new Date());
-                        (d.head || d.body).appendChild(s);
-                    })();
-                </script>
-                <noscript>Please enable JavaScript to view the
-                    <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-
-                <br />
-                <br />
-            </div>
+        <h3 id="solution">Parts of a Solution</h3>
+        <p><strong>YAML In - YAML Out</strong></p>
+        <p>
+          Firstly, it's important to ensure the user doesn't lose any existing
+          capabilities. They already work with YAML files so we should support
+          import and export so that we seamlessly integrate with their existing
+          tools.
+        </p>
+        <p><strong>Fully Featured YAML Editor</strong></p>
+        <p>
+          Presumably the user already has a preferred text editor for working
+          with YAML. I'm not proposing we replace it (see above). However, we'll
+          see shortly that providing our own fully featured YAML editor has
+          advantages. It should have enough features to not feel like a
+          downgrade from their current editor. There are plenty of off-the-shelf
+          components for this,
+          <a href="https://www.npmjs.com/package/react-ace">React ACE Editor</a>
+          for example.
+        </p>
+        <p><strong>UI Forms</strong></p>
+        <p>
+          A set of configuration represented in YAML can also be represented as
+          a form with text fields, check boxes, switches, drop down select
+          menus, and more. This can be a more natural way to interact with the
+          configuration (although not always). There are off-the-shelf
+          components for building such forms from a configuration schema.
+          <a href="https://github.com/rjsf-team/react-jsonschema-form"
+            >React JSONSchema Forms</a
+          >
+          for example.
+        </p>
+        <p><strong>Multiple Synchronised Representations</strong></p>
+        <p>
+          This is a fancy way of saying that the form and the editor should be
+          displayed side by side and kept in sync. If an option is changed in
+          the form, it should update in the editor and vice versa. You can take
+          any underlying state and represent it in multiple ways at the same
+          time, it's a powerful way to provide the user the benefits of both.
+          This pattern is used a lot, <a href="https://jwt.io/">jwt.io</a> for
+          example for displaying encoded and decoded JWTs.
+        </p>
+        <p><strong>Instant Validation</strong></p>
+        <p>
+          The best kind of feedback is instantaneous feedback. If I make a
+          mistake I want to know whilst I'm still thinking about it. There's no
+          reason a tool can't do the heavy lifting in the background, constantly
+          validating that the configuration will work.
+        </p>
+        <p><strong>Inject Context</strong></p>
+        <p>
+          We can take the above idea further. As well as telling the user when
+          something is wrong, we can also give them information when it's right.
+          For example, given the current configuration perhaps we could compute
+          the estimated time the task will take. If we then display that
+          information right there inside the config, the user can iterate on it
+          in real time!
+        </p>
+        <div class="image-container">
+          <img
+            src="../images/articles/complex_configuration/inject_context.png"
+          />
+          <p>
+            <i
+              >Example of contextual feedback taken straight form our
+              platform.</i
+            >
+          </p>
         </div>
-    </body>
-    <footer></footer>
+        <p><strong>Predictive Editing</strong></p>
+        <p>
+          If I'm editing a YAML file in VSCode with Github Copilot enabled, then
+          it will attempt to predict what I'm going to type next. For configs
+          like Kubernetes manifests it usually does a pretty good job. We could
+          do the same thing easily with an LLM, or even with a few simple rules.
+        </p>
+        <h3 id="solution">Wrap Up</h3>
+        <p>
+          We built a front-end app that displayed a dynamically generated form
+          next to the YAML editor. The form was generated from a JSON schema
+          that was derived from the task's configuration, and the form and
+          editor were kept in sync. We validated the configuration in real time
+          and provided contextual feedback as described above, but we could not
+          justify predictive editing.
+        </p>
 
+        <p>
+          The result was quick and easy to build, requiring only a bit of glue
+          code to stitch the off-the-shelf components together. It allowed our
+          users to rapidly build validated configuration files with fewer
+          mistakes.
+        </p>
+        <br />
+
+        <br />
+        <div id="disqus_thread"></div>
+        <script>
+          var disqus_config = function () {
+            this.page.url =
+              "https://www.harrysprojects.com/articles/complex_configuration.html";
+            this.page.identifier = "complex_configuration";
+          };
+
+          (function () {
+            // DON'T EDIT BELOW THIS LINE
+            var d = document,
+              s = d.createElement("script");
+            s.src = "https://harrysprojects-com.disqus.com/embed.js";
+            s.setAttribute("data-timestamp", +new Date());
+            (d.head || d.body).appendChild(s);
+          })();
+        </script>
+        <noscript
+          >Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript"
+            >comments powered by Disqus.</a
+          ></noscript
+        >
+
+        <br />
+        <br />
+      </div>
+    </div>
+  </body>
+  <footer></footer>
 </html>

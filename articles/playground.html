@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>A Basic Loop</title>
+    <meta
+      name="description"
+      content="Getting a simple LLM powered minecraft bot up and running so that we have
+        something to build upon in future posts."
+    />
+    <meta name="author" content="Harry Turner" />
+    <meta
+      name="keywords"
+      content="minecraft, agent, llm, sense, think, act, mineflayer, autonomous, autonomous agent, control"
+    />
+    <link rel="icon" type="image/ico" href="../images/favicon.ico" />
+    <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel=“canonical”
+    href=“https://www.harrysprojects.com/articles/playground.html” />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../js/Navbar.js" type="text/javascript" defer></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "UA-180754451-1");
+    </script>
+  </head>
+
+  <body>
+    <div class="page-container">
+      <nav-bar></nav-bar>
+
+      <div>
+        <h1>Part 1 - A Basic Loop</h1>
+        <p><i>19th March 2024</i></p>
+        <p>
+          Github repository tag corresponding to this post is
+          <i
+            ><a href="https://github.com/harry-optimised/discovery/tree/part-1"
+              >Part 1 - A Basic Loop</a
+            ></i
+          >
+        </p>
+        <p>
+          This first post is about getting a simple Sense, Think, Act loop up
+          and running so that we have something to build upon in future posts.
+          For the installation see the repository README.
+        </p>
+        <h3>Components of the System</h3>
+        <p>
+          There are three components. First we have Minecraft itself with
+          several mods installed. This provides the entire simulated world and
+          physics. There are several good reasons for using Minecraft as our
+          simulator. Firstly, it’s a full blown 3D, procedural, survival game
+          that contains NPCs, items, weather, time, and a variety of terrains.
+          Agents in Minecraft can explore, build, attack, talk, dig, craft, etc
+          and much more. This gives us a <i>vast</i> set of possibilities for
+          giving our agents goals and behaviour, and we can see our results in
+          realtime in a high fidelity 3D environment. Secondly there are
+          existing tools for building Minecraft bots that make it easy to move
+          about and interact with the world, saving us from having to deal with
+          low level details.
+        </p>
+        <p>
+          For the low level control of the bot, such a moving around the world,
+          we use the
+          <a href="https://github.com/PrismarineJS/mineflayer"
+            >Mineflayer toolkit</a
+          >. As far I can tell, Mineflayer is the best tool for building
+          Minecraft bots, it has a lot of functionality and it's well
+          maintained. It's also written in JavaScript. Unfortunately, I want to
+          write my LLM agent logic in Python (more on which shortly) therefore I
+          need to split the agent into two parts, a JavaScript based component
+          handles interaction with Minecraft, and a Python component that
+          handles interaction with the LLM. A natural way to have the two
+          components talk to each other is over HTTP, therefore we have a simple
+          Node.js server called the <i>Agent</i> that provides a simple API for
+          both sensing the environment, and performing actions.
+        </p>
+        <p>
+          Finally we have the controller, written in Python, and calling out to
+          an LLM using langchain. The controller implements the Sense, Think,
+          Act loop, where the Sense, and Act steps are calls to the Node.js
+          server with some predefined actions. I chose to write this in Python
+          because it's my preferred language for implementing complex
+          applications. The diagram below describes the high level intent for
+          the architecture.
+        </p>
+        <div class="image-container">
+          <img src="../images/articles/playground/architecture.png" />
+          <p><i>A simple bot architecture.</i></p>
+        </div>
+
+        <h3>A First Attempt</h3>
+        <p>
+          Our first agent is very basic, we simply call the LLM everytime we
+          want to decide what to do next. We pass in the state of the world, in
+          some suitable representation, and we attempt to decode the action that
+          the LLM tells us to perform.
+        </p>
+        <p>
+          I chose to represent this state as JSON, and I describe the available
+          actions in JSON Schema. This has several advantages. Firstly, it makes
+          it easier to parse the output of the LLM to understand what action it
+          wants us to take. To keep things as simple as possible, I ask the LLM
+          to respond with properly formatted JSON, and then I attempt to parse
+          it as one of our available actions using Pydantic.
+        </p>
+        <br />
+        <div class="image-container">
+            <img src="../images/articles/playground/actions.png" />
+            <p><i>Actions represented as Pydantic base classes.</i></p>
+          </div>
+        
+        <p>
+          This is similar to
+          how an API might validate user input and it works nicely, if the LLM
+          response does not match an action we just log an error and do nothing.
+          What I like about this approach is that it nicely abstracts away the
+          fact that we're working with natural language. Once the response is
+          returned and successfully parsed into a Python object, we know what
+          we're dealing with, the rest of the application can safely make
+          assumptions about the structure of the response.
+        </p>
+        <p>
+          For our first basic agent, the world state is simply a couple of
+          properties that are trivial to read from the Mineflayer API such as
+          the current time of day, the weather, and any nearby entities. I chose
+          to represent entities as a dictionary of name and ID so that the LLM
+          can refer to particular entities by ID in it's response. I also
+          include the last chat message. The following screenshot shows me asking
+          the agent what it can see, which resulted in it mostly dumping the world state
+          back to me in natural language.
+        </p>
+        <br />
+        <div class="image-container">
+          <img src="../images/articles/playground/world_state.png" />
+          <p><i>Asking the agent what it can see.</i></p>
+        </div>
+        <p>
+          For the actions our agent can chat, move towards an entity, or do
+          nothing. Chatting is trivial, the agent must simply provide a message.
+          To move towards an entity, Mineflayer requests that we provide the ID
+          of a valid entity. Recall that this information is returned in the
+          world state, and we define our move action in JSON Schema to take an
+          entity ID as a parameter. As long as the LLM responds with the correct
+          JSON, we will have the required information for Mineflayer to carry
+          out the action.
+        </p>
+        <p>
+          The input to the LLM therefore consists of two parts, a section
+          containing JSON formatted world state, and a set of actions in JSON
+          Schema. Actually there are three parts, we need to tell the agent what
+          to do! But this third part is encoded in the system message. The full
+          input to the LLM is therefore as follows.
+        </p>
+        <p>
+            <b>System Prompt:</b>
+          <pre>
+You are a minecraft bot. The user will provide two bits of information:
+
+1. A JSON datastructure of information about the world.
+2. A list of valid actions you can take represented in JSON Schema. 
+
+Your task is to consider the current information about the world, and choose exactly one 
+action to perform. Respond with JSON in the correct form for the chosen action's schema.
+          </pre>
+
+            <b>Example Input:</b>
+            <pre>
+# Sense Data
+{
+    "last_message": null,
+    "is_raining": false,
+    "is_day": true,
+    "entities": [
+    {
+        "entityID": "222",
+        "type": "player"
+    }
+    ]
+}
+
+# Actions
+[
+    {
+    "properties": {
+        "action": {
+        "const": "chat",
+        "description": "Announce a message to the world.",
+        "title": "Action"
+        },
+        "message": {
+        "title": "Message",
+        "type": "string"
+        }
+    },
+    "required": [
+        "action",
+        "message"
+    ],
+    "title": "ChatAction",
+    "type": "object"
+    },
+    {
+    "properties": {
+        "action": {
+        "const": "move",
+        "description": "Move towards an entity.",
+        "title": "Action"
+        },
+        "entityID": {
+        "title": "Entityid",
+        "type": "string"
+        }
+    },
+    "required": [
+        "action",
+        "entityID"
+    ],
+    "title": "MoveAction",
+    "type": "object"
+    }
+]
+            </pre>
+        </p>
+
+        <h3>Limitations</h3>
+        <p>
+            What we've got is very basic, but it's a fun start. It's <i>something</i> we 
+            can work with. The biggest problem I can foresee is that we're going to quickly become
+            limited on the amount of information we can provide to the LLM. I tried giving it more
+            actions it could perform but I found it would just pick the same one over and over again.
+            It's likely we'll need to call the LLM several times during the course of a single step
+            to guide it through a decision making process. Also, the agent has no memory about what
+            it's done, and no goals to work towards. We'll fix this in later posts.
+        </p>
+        <p>
+            Now that we've got our basic environment up and running I want to do a literature review
+            of what's out there. The next articles will start to really build on this foundation.
+        </p>
+        <br />
+        <div class="image-container">
+            <img src="../images/articles/playground/follow.png" />
+            <p><i>We'll build up to much more complex commands.</i></p>
+          </div>
+        <br />
+        <div id="disqus_thread"></div>
+        <script>
+          var disqus_config = function () {
+            this.page.url = "https://www.harrysprojects.com/blogs/playground.html";
+            this.page.identifier = "playground";
+          };
+
+          (function () {
+            // DON'T EDIT BELOW THIS LINE
+            var d = document,
+              s = d.createElement("script");
+            s.src = "https://harrysprojects-com.disqus.com/embed.js";
+            s.setAttribute("data-timestamp", +new Date());
+            (d.head || d.body).appendChild(s);
+          })();
+        </script>
+        <noscript
+          >Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript"
+            >comments powered by Disqus.</a
+          ></noscript
+        >
+
+        <br />
+        <br />
+      </div>
+    </div>
+  </body>
+  <footer></footer>
+</html>
