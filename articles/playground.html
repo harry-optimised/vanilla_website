@@ -1,0 +1,111 @@
+<!doctype html>
+
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <title>A Basic Loop</title>
+        <meta name="description" content="Getting a simple LLM powered minecraft bot up and running so that we have
+        something to build upon in future posts.">
+        <meta name="author" content="Harry Turner">
+        <meta name="keywords"
+            content="learn, tutorial, paper, spatial pyramid pooling, deep learning, machine learning, object detection, spp layer">
+        <link rel="icon" type="image/ico" href="../images/favicon.ico">
+        <link href="../styles/styles.css" type="text/css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+            rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+            rel="stylesheet">
+        <link rel=“canonical” href=“https://www.harrysprojects.com/articles/spp.html” />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="../js/Navbar.js" type="text/javascript" defer></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+
+            gtag('config', 'UA-180754451-1');
+        </script>
+    </head>
+
+    <body>
+        <div class="page-container">
+
+            <nav-bar></nav-bar>
+
+            <div>
+                <h1>Part 1 - A Basic Loop</h1>
+                <p><i>19th March 2024</i></p>
+                <p>
+                    Github repository tag corresponding to this post is <i><a
+                            href="https://github.com/harry-optimised/discovery/tree/part-1">Part 1 - A Basic
+                            Loop</a></i>
+                </p>
+                <p>
+                    This first post is about getting a simple Sense, Think, Act loop up and running so that we have
+                    something to build upon in future posts. For the installation see the repository README.
+                </p>
+                <h3>Components of the System</h3>
+                <p>
+                    There are three components. First we have Minecraft itself with several mods installed. This
+                    provides the entire simulated world and physics. There are several good reasons for using Minecraft
+                    as our simulator. Firstly, it’s a full blown 3D, procedural, survival game that contains NPCs,
+                    items, weather, time, and a variety of terrains. Agents in Minecraft can explore, build, attack,
+                    talk, dig, craft, etc and much more. This gives us a <i>vast</i> set of possibilities for giving our
+                    agents goals and behaviour, and we can see our results in realtime in a high fidelity 3D
+                    environment. Secondly there are existing tools for building Minecraft bots that make it easy to move
+                    about and interact with the world, saving us from having to deal with low level details.
+                </p>
+                <p>
+                    For the low level control of the bot, such a moving around the world, we use the <a
+                        href="https://github.com/PrismarineJS/mineflayer">Mineflayer toolkit</a>. As far I can tell,
+                    Mineflayer is the best tool for building Minecraft bots, it has a lot of functionality and
+                    it's well maintained. It's also written in JavaScript. Unfortunately, I want to write my LLM agent
+                    logic in Python (more on which shortly) therefore I need to split the agent into two parts, a
+                    JavaScript based component handles interaction with Minecraft, and a Python component that handles
+                    interaction with the LLM. A natural way to have the two components talk to each other is over HTTP,
+                    therefore we have a simple Node.js server called the <i>Agent</i> that provides a simple API for
+                    both sensing the environment, and performing actions.
+                </p>
+                <p>
+                    Finally we have the controller, written in Python, and calling out to an LLM using langchain. The
+                    controller implements the Sense, Think, Act loop, where the Sense, and Act steps are calls to the
+                    Node.js server with some predefined actions. I chose to write this in Python because it's my
+                    preferred language for implementing complex applications. The diagram below describes the high level
+                    intent for the architecture.
+                </p>
+
+
+                <h3>A First Attempt</h3>
+                <h3>Limitations</h3>
+
+                <br />
+                <div id="disqus_thread"></div>
+                <script>
+                    var disqus_config = function () {
+                        this.page.url = "https://www.harrysprojects.com/blogs/spp.html";
+                        this.page.identifier = "spp";
+                    };
+
+                    (function () { // DON'T EDIT BELOW THIS LINE
+                        var d = document, s = d.createElement('script');
+                        s.src = 'https://harrysprojects-com.disqus.com/embed.js';
+                        s.setAttribute('data-timestamp', +new Date());
+                        (d.head || d.body).appendChild(s);
+                    })();
+                </script>
+                <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments
+                        powered by Disqus.</a></noscript>
+
+                <br />
+                <br />
+            </div>
+
+        </div>
+    </body>
+    <footer>
+    </footer>
+
+</html>
