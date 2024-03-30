@@ -1,4 +1,5 @@
 import requests
+from datetime import datetime
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 import logging
@@ -7,6 +8,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 CRAWLED_URLS = set()
+SITEMAP_URLS = []
 
 def crawl_website(url, domain=None):
     logger.info(f'Crawling URL: {url}')
@@ -21,8 +23,10 @@ def crawl_website(url, domain=None):
             logger.warning(f'404 warning for URL: {url}')
             return
 
-        soup = BeautifulSoup(response.text, 'html.parser')
+        last_modified = response.headers.get('Last-Modified', datetime.now().strftime('%Y-%m-%d'))
+        SITEMAP_URLS.append((url, last_modified))
 
+        soup = BeautifulSoup(response.text, 'html.parser')
         links_to_follow = []
 
         # Collect article links
@@ -64,5 +68,19 @@ def crawl_website(url, domain=None):
         logger.warning(f'Request failed for URL: {url}, with error {e}')
 
 
+def write_sitemap():
+    with open('sitemap.xml', 'w') as file:
+        file.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+        file.write('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n')
+        for loc, lastmod in SITEMAP_URLS:
+            file.write(f'    <url>\n')
+            file.write(f'        <loc>{loc}</loc>\n')
+            file.write(f'        <lastmod>{lastmod}</lastmod>\n')
+            file.write(f'    </url>\n')
+        file.write('</urlset>')
+    logger.info('Sitemap written to sitemap.xml')
+
+
 if __name__ == '__main__':
     crawl_website('https://www.harrysprojects.com')
+    write_sitemap()

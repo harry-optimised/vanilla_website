@@ -1,16 +1,127 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset
-      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
-
-
-<url>
-  <loc>https://www.harrysprojects.com/</loc>
-  <lastmod>2020-12-12T18:33:51+00:00</lastmod>
-</url>
-
-
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://www.harrysprojects.com</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/llm_agents.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/llm_agents/playground.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/system_design.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/system_design/complex_configuration.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/system_design/auto_incrementing_ids.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/object_detection.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/object_detection/rcnn.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/object_detection/spp.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/object_detection/fastrcnn.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/object_detection/fasterrcnn.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/object_detection/maskrcnn.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/object_detection/multibox.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/object_detection/yolov1.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/object_detection/ssd.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/object_detection/yolov23.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/active_learning.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/active_learning/objectal.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/active_learning/uncertaintysampling.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/active_learning/diversitysampling.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/active_learning/artificial.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/miscellaneous/kubernetesmarch2023.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/miscellaneous/buildsomething.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/miscellaneous/wordle.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/miscellaneous/wordle.html#algorithm</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/miscellaneous/bgp_measurements.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/miscellaneous/thea.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/miscellaneous/efficientnetx.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/miscellaneous/burningout.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/miscellaneous/networklibrary.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
+    <url>
+        <loc>https://www.harrysprojects.com/pages/miscellaneous/carcontrol.html</loc>
+        <lastmod>Sat, 30 Mar 2024 17:32:01 GMT</lastmod>
+    </url>
 </urlset>
