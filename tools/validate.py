@@ -3,6 +3,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 from email.utils import parsedate_to_datetime
+import zoneinfo
 import logging
 
 logger = logging.getLogger(__name__)
@@ -10,6 +11,8 @@ logging.basicConfig(level=logging.INFO)
 
 CRAWLED_URLS = set()
 SITEMAP_URLS = []
+
+timezone = zoneinfo.ZoneInfo('Europe/London')
 
 def crawl_website(url, domain=None):
     logger.info(f'Crawling URL: {url}')
@@ -24,7 +27,7 @@ def crawl_website(url, domain=None):
             logger.warning(f'404 warning for URL: {url}')
             return
 
-        last_modified = datetime.now().strftime('%Y-%m-%dT%H:%M:%S%z')
+        last_modified = datetime.now(tz=timezone).isoformat()
         SITEMAP_URLS.append((url, last_modified))
 
         soup = BeautifulSoup(response.text, 'html.parser')
