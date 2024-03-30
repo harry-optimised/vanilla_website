@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Review and updated March 2024
+        canonical: yes
+        navbar: yes
+        images: yes
+        disqus: no
+        analytics: yes
+        accessible: yes
+        description: yes
+        title: yes
+        keywords: yes    
+        -->
+    <title>Active Learning Series</title>
+    <meta name="description" content="Active Learning Series." />
+    <meta name="author" content="Harry Turner" />
+    <meta
+      name="keywords"
+      content="machine learning, active learning, object detection, uncertainty sampling, diversity sampling"
+    />
+    <link rel="icon" type="image/ico" href="/images/favicon.ico" />
+    <link href="/styles/styles.css" type="text/css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel=“canonical”
+    href=“https://www.harrysprojects.com/pages/active_learning.html” />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="/js/Navbar.js" type="text/javascript" defer></script>
+    <script src="/js/ArticleCard.js" type="text/javascript" defer></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "UA-180754451-1");
+    </script>
+  </head>
+
+  <body>
+    <div class="page-container">
+      <nav-bar></nav-bar>
+
+      <div style="width: 100%">
+        <h1>Active Learning Series</h1>
+
+        <br />
+        <ul>
+          <li>
+            <article-card
+              title="Part 1: Introduction to Active Learning for Object Detection at Vaarst"
+              started="April 2021"
+              description="A gentle introduction to active learning, different techniques, and how we use it at Vaarst."
+              image-src="/images/active_learning/objectal/aquarium.png"
+              url="/pages/active_learning/objectal.html"
+            />
+          </li>
+          <br />
+          <hr />
+          <li>
+            <article-card
+              title="Part 2: Uncertainty Sampling Techniques"
+              started="April 2021"
+              description="A look at uncertainty sampling techniques for finding the most informative data points to label."
+              image-src="/images/headers/uncertainty_sampling.png"
+              url="/pages/active_learning/uncertaintysampling.html"
+            />
+          </li>
+          <br />
+          <hr />
+          <li>
+            <article-card
+              title="Part 3: Diversity Sampling Techniques"
+              started="April 2021"
+              description="A look at diversity sampling techniques for bringing diversity to the training data."
+              image-src="/images/headers/diversity_sampling.png"
+              url="/pages/active_learning/diversitysampling.html"
+            />
+          </li>
+          <br />
+          <hr />
+          <li>
+            <article-card
+              title="Part 4: Generating Artificial Training Data"
+              started="July 2018"
+              description="A small project to solve an object detection task with no real training data at all."
+              image-src="/images/headers/artificial_thumbnail.png"
+              url="/pages/active_learning/artificial.html"
+            />
+          </li>
+        </ul>
+
+        <br />
+        <br />
+      </div>
+    </div>
+  </body>
+  <footer></footer>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Review and updated March 2024
+        canonical: yes
+        navbar: yes
+        images: yes
+        disqus: no
+        analytics: yes
+        accessible: yes
+        description: yes
+        title: yes
+        keywords: yes    
+        -->
+    <title>Mask R-CNN</title>
+    <meta
+      name="description"
+      content="The architecture of Mask R-CNN and how it works."
+    />
+    <meta name="author" content="Harry Turner" />
+    <meta
+      name="keywords"
+      content="learn, tutorial, paper, machine learning, deep learning, object detection, instance segmentation, mask r-cnn, mask branch, roi align, training"
+    />
+    <link rel="icon" type="image/ico" href="/images/favicon.ico" />
+    <link href="/styles/styles.css" type="text/css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel=“canonical”
+    href=“https://www.harrysprojects.com/pages/object_detection/maskrcnn.html”
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="/js/Navbar.js" type="text/javascript" defer></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "UA-180754451-1");
+    </script>
+  </head>
+  <body>
+    <div class="page-container">
+      <nav-bar></nav-bar>
+
+      <div>
+        <h1>Mask R-CNN.</h1>
+        <p><i>16th October 2020</i></p>
+        <h3>Mask R-CNN</h3>
+        <p>
+          Mask R-CNN is a modern, two-stage object detector and instance mask
+          predictor, it is a powerful tool to have in your computer vision
+          toolbox for doing full scene understanding.
+        </p>
+        <p>
+          Mask R-CNN extends Faster R-CNN to do instance prediction in addition
+          to object detection. If you need a reminder, instance prediction was
+          explained in detail in the introductory series, but in short we are
+          now also predicting <i>a mask </i> for each object as well as a box.
+          Note that this is slightly different to pixelwise segmentation, as a
+          pixel could belong to multiple object masks.
+        </p>
+        <p>
+          All the work we did in the last post is about to pay off, if you
+          understand Faster R-CNN and the framework it provides, then Mask R-CNN
+          is basically a small addition to the detector head plus a small
+          alignment trick.
+        </p>
+        <p>
+          Here's what we'll cover. First we'll discuss the new mask branch and
+          look at it's architecture using an example, then we'll discuss a trick
+          for improving pixel to pixel alignment using the ROI Align layer,
+          finally we'll touch on multi-task training as a training paradigm, but
+          won't discuss it in detail as it's stuff you already know.
+        </p>
+        <h3>The Mask Branch</h3>
+        <p>
+          Mask R-CNN adds a mask prediction branch to the Fast R-CNN detector
+          head, let's briefly review that in a bit more detail.
+        </p>
+        <p>
+          Recall the architecture of the Fast R-CNN detector head, I have
+          repeated the figure from the paper below. I won't repeat in depth the
+          explanation already provided in my post on Fast R-CNN, however I think
+          a brief recap will be useful.
+        </p>
+        <div class="image-container">
+          <img
+            src="/images/object_detection/maskrcnn/fastrcnn_architecture_paper.png"
+          />
+          <p>
+            <i
+              >This is Figure 1 from the Fast R-CNN paper, credit to Ross
+              Girshick.</i
+            >
+          </p>
+        </div>
+        <p>
+          Assume an image has been passed through the backbone to get the
+          feature map, and we have our proposals already. We project every
+          region proposal onto the last feature map and do ROI Pooling on each
+          one. ROI Pooling warps each projected region proposal into a fixed
+          width and height, but note that <i>it has not been flattened yet</i>.
+        </p>
+        <p>
+          After ROI Pooling, each region is a 3D tensor of information, a fixed
+          width and height, and the depth is however many channels are in the
+          feature map. <i>Only then </i> is the 3D tensor flattened into a fixed
+          length vector, and this fixed length vector passes through two fully
+          connected layers, and then branches into two sibling fully connected
+          layers, one producing <code>K + 1</code> outputs for the class
+          prediction (including one background class), and the other producing
+          <code>4K</code> outputs, four box coordinates for each of the
+          <code>K</code> classes. I know that was quick, but I've covered this
+          in detail in my Fast R-CNN post, so revisit those sections if you want
+          a reminder.
+        </p>
+        <p>
+          The mask branch is fully convolutional, it operates
+          <i>on the unflattened warped proposal</i> and consists of several
+          convolutions all operating on that region, this produces a set of
+          feature maps, each one predicting a mask for each class. This is what
+          is shown in the figure presented in the Mask R-CNN paper, copied in
+          below. That was a bit of a mouthful though so let's go through an
+          example to make that clearer.
+        </p>
+        <div class="image-container">
+          <img src="/images/object_detection/maskrcnn/mask_rcnn_branch.png" />
+          <p>
+            <i
+              >This is Figure 1 from the Mask R-CNN paper, credit to Ross
+              Girshick, Piotr Dollar, Georgia Gkioxari, and Kaiming He.</i
+            >
+          </p>
+        </div>
+        <h3>An Example</h3>
+        <p>
+          Assume that the number of channels in the final feature map of the
+          backbone is 512, and that it is of size 8x8. (I know that's small for
+          a feature map, but it makes the drawing easier). Assume also that we
+          have a single region proposal somewhere in the middle of the image,
+          this is projected onto the feature map such that our region proposal
+          is quantised to fit into the feature map grid.
+        </p>
+        <p>
+          This quantisation is nothing special; because we know the input image
+          size, and the feature map size, we can compute the effective stride on
+          the input image. For example, our feature map is 8 cells wide, so if
+          the image is 80 pixels wide, then each feature map cell is effectively
+          10 pixels in the image, so our stride is 10. If the region proposal is
+          therefore 40 pixels in the original image, then it should
+          <i>project</i> to 4 cells in the feature map, which is just 40 divided
+          by the stride. Make sense? If the numbers do not divide exactly, the
+          we simply <i>truncate</i>, so a proposal of width 45 would become 4.5,
+          which would be truncated to 4, that way we never have proposal
+          coordinates split across two cells. Here's what we've got so far.
+        </p>
+        <div class="image-container">
+          <img src="/images/object_detection/maskrcnn/mask_part_1.jpg" />
+          <p><i>Illustration of the last feature map.</i></p>
+        </div>
+        <p>
+          Next, our ROI Pooling layer squashes (or stretches) every projected
+          region into a fixed width and height, let's say 3x3, note that this is
+          specified ahead of time as a hyperparameter you get to choose. To
+          avoid confusion, I'll refer to the region before the ROI Pool as the
+          <i>projected region</i>, and afterwards I'll call it the
+          <i>warped region</i>. The warped region is
+          <i>not in the feature map</i> think of them as individual 3D tensors
+          for each region.
+        </p>
+        <p>
+          The ROI Pool is another form of quantisation, because if you study my
+          drawing above you'll see that the projected region is 4x4 in the
+          feature map, but it needs to be 3x3. This is the same problem as
+          quantising from the image, so we do the same truncation operation that
+          we did before. Here's what we've got now, note how we've cropped the
+          warped region out of the original feature map.
+        </p>
+        <div class="image-container">
+          <img src="/images/object_detection/maskrcnn/mask_part_2.jpg" />
+          <p>
+            <i
+              >One projected region has been warped into a 3x3x512 tensor. This
+              happens for every N projected region, so we end up with N 3D
+              tensors.</i
+            >
+          </p>
+        </div>
+        <p>
+          Now we do two different things in parallel, the 3D warped region is
+          flattened into a fixed length vector (in the image below, the 4608
+          comes from 3 x 3 x 512) and goes down into the box and class
+          prediction branches. Meanwhile, we pass the unflattened warped region
+          down the mask branch, it passes through a convolution layer that
+          produces another 3D tensor still with width 3x3, but with
+          <code>K</code> channels. The <code>K</code> is important, it's one
+          channel for every class. Just as we predict a bounding box for every
+          class, we predict a mask for every class, each mask is captured within
+          a single channel of that output tensor.
+        </p>
+        <p>
+          The architecture of the mask branch is very simple, it is literally
+          just a convolution. Sometimes, the convolutions may <i>dilate</i> the
+          feature map, up to 6x6 or more for example, others will leave it the
+          same size. Some might do several convolutions in a row with differing
+          number of channels in the intermediate layers, but all will end up
+          with <code>K</code> channels in the output. Here's what we've got now.
+        </p>
+        <div class="image-container">
+          <img src="/images/object_detection/maskrcnn/mask_part_3.jpg" />
+          <p>
+            <i
+              >The warped region is passed through a convolution layer to
+              produce a 3D tensor of size 3 x 3 x K.</i
+            >
+          </p>
+        </div>
+        <p>
+          How do we convert a single channel of that output tensor into an
+          actual mask? The final tensor is passed through a sigmoid layer, so
+          every output is now between 0 and 1, and then we threshold at 0.5. To
+          get the mask for the <code>ith</code> class, we select the
+          <code>ith</code> channel in the output tensor. Then we need to project
+          it back onto the image.
+        </p>
+        <p>
+          The original region proposals were first projected onto the feature
+          map, and then squashed into a 3x3 fixed width and height tensor. We
+          need to project back through
+          <i> both of these operations</i> in order to map the mask onto our
+          original region proposals, we can then paste the mask over the region
+          proposal in the original image. These are all technical details that
+          can be skipped without loss of understanding of the main idea behind
+          Mask R-CNN, but hopefully you get what I'm saying.
+        </p>
+        <div class="image-container">
+          <img src="/images/object_detection/maskrcnn/mask_part_4.jpg" />
+          <p>
+            <i
+              >To get the final mask, we select the ith channel. The tensor is
+              first passed through a sigmoid layer and then thresholded. We
+              dewarp the mask back through the quantisation layers to get the
+              mask on the image.</i
+            >
+          </p>
+        </div>
+        <h3>The ROI Align Layer</h3>
+        <p>
+          The process as I described it above will not work. Or rather, it will
+          work, but not very well. That's because when you project your
+          predicted mask back through the two quantisation layers, you have to
+          <i>unquantise</i>, but quantisation is a lossy operation. Recall from
+          my example that if we projected a region proposal of width 45 into a
+          feature map of width 8, it would be truncated to 4 cells, well how
+          does the reverse procedure know to project it back to 45 pixels? It
+          doesn't, and so you end up with very blocky masks on the output. Note
+          that this problem also affects the forward pass as well, the mask
+          prediction branch has to work with blocky quantised location
+          information, which degrades it's performance.
+        </p>
+        <p>
+          Before I present the solution from the Mask R-CNN paper, let's just
+          remind ourselves that there are two operations to blame here, the
+          quantisation from region proposal onto the feature map, and
+          quantisation of the ROI Pool from the projected region into the fixed
+          warped region.
+        </p>
+        <p>
+          The solution to this problem is actually very simple, rather than
+          truncate, you just divide. So that 45 pixel region proposal doesn't
+          get quantised to 4 cells in the feature map, it gets projected to 4.5
+          cells. How this works is easier to explain in a diagram.
+        </p>
+        <div class="image-container">
+          <img src="/images/object_detection/maskrcnn/roi_align.jpg" />
+          <p><i>ROI Align, see my explanation below.</i></p>
+        </div>
+        <p>
+          The region proposal is the dotted line around the stick figure, the
+          quantised case is in black, see how it lines up with the grid cells on
+          the feature map because it is quantised to make it fit. The black 2x2
+          output is the quantised region, note how each cell of the 2x2 output
+          is taken directly from the corresponding cell on the feature map. For
+          ROI Align however, the dotted box is projected onto the feature map,
+          this layer
+          <i> also</i> outputs a 2x2 output, but this time, each cell of the
+          purple 2x2 is taken from a mixture of the cells on the feature map.
+          For example, cell 1 of the 2x2 output is taken from a mixture of A, B,
+          C, and D. Exactly how much of A, B, C, and D to use is linearly
+          interpolated. Finally, note how in both cases the output is a 2x2, the
+          next layer knows nothing about how this was computed, it looks the
+          same to the rest of the network, this means we can simply swap out the
+          first method for the second.
+        </p>
+        <p>
+          The important point here is that information is no longer being lost,
+          so the mask prediction branch has more accurate information to work
+          from, and when the mask is projected back through to the image, it can
+          be done much more accurately.
+        </p>
+        <p>
+          Finally, this process is applied to the projection from region
+          proposal to feature map, <i>and</i> the ROI Pool layer, which is
+          renamed as the ROI Align layer, remember that functionally it does the
+          same thing as ROI Pool, it just does it without quantisation.
+        </p>
+        <h3>Training</h3>
+        <p>
+          Faster R-CNN had a branch for box prediction and class prediction, and
+          it's loss function had two components. For Mask R-CNN, these first two
+          components are identical, but now that we've added a third branch, we
+          need to add another component to the loss, the mask loss. Recall above
+          how the mask outputs are passed through a sigmoid layer to clamp them
+          between 0 and 1? Well the mask loss is simply the average binary
+          cross-entropy loss applied to the predicted mask for a class and the
+          actual mask for a class. Note that we don't do the threshold here.
+        </p>
+        <div class="image-container">
+          <img src="/images/object_detection/maskrcnn/mask_loss_function.png" />
+          <p><i>The three part loss function for Mask R-CNN.</i></p>
+        </div>
+        <p>
+          Just like with boxes, we only compute the mask loss for regions that
+          overlap ground truth objects by at least 0.5 (because if the boxes
+          didn't overlap, what mask should the region predict?) Also, because
+          the region and ground truth box may not overlap perfectly, the mask
+          target is the intersection between the region proposal and the ground
+          truth.
+        </p>
+        <p>
+          Finally, the mask loss is only defined for the actual ground truth
+          class. In other words, if the ground truth box contains a cat, then we
+          only take the loss applied to the cat mask, we don't try and force the
+          other class masks to also correctly predict the cat mask, that would
+          be unfair.
+        </p>
+        <p>
+          I explain the details of the multi task loss more thoroughly in the
+          Fast R-CNN post, in summary, for Mask R-CNN you add one more term to
+          the loss function, which is the average binary cross entropy loss of
+          the intersection of the predicted mask and ground truth, for the
+          particular ground truth class of interest.
+        </p>
+        <p>
+          This approach is called multi task training, we are predicting a mask,
+          a box, and a class, which are all very related tasks, so it seems that
+          they should all help each other. The paper does experiments to show
+          that even when the masks are not used in inference, including them in
+          training does improve the box detection performance, this is a common
+          result found in lots of other applications, the features required to
+          predict good masks are also useful for better object detection, and
+          vice versa.
+        </p>
+        <h3>Final Bits</h3>
+        <p>
+          An important insight made by the Mask R-CNN paper is that it decouples
+          mask and class prediction, and that this dramatically improves the
+          instance prediction performance. Uncoupled means that the mask
+          prediction does not depend on the class prediction and vice versa, the
+          classes are predicted in one branch, with no knowledge at all about
+          what the mask branch has done, and the mask branch is left alone to
+          predict K different masks, one for each class,
+          <i>without caring which one is the correct one.</i>
+        </p>
+        <p>
+          Why is this a good thing? Mostly it means that each class mask has
+          full flexibility to select whatever pixels it wants in the original
+          image, if it thinks those pixels belong to it's object of interest. It
+          is only
+          <i> after</i> all the masks have been predicted, that we select the
+          one we want. To get the final mask, we simply select the mask of the
+          highest confidence class, and use that. (So technically there is
+          coupling, but only right at the end).
+        </p>
+        <p>
+          In contrast, imagine that we didn't have separate branches, and that
+          the output mask was a single channel that tried to label each pixel
+          with a class, this definitely couples the two tasks together, and it
+          means the classes compete against each other to "win" the pixel, a
+          pixel can never belong to more than one class. Although this is fine
+          for pixelwise segmentation, it degrades instance segmentation
+          performance.
+        </p>
+        <h3>Next</h3>
+        <p>
+          And we're done. Mask R-CNN, just like Faster R-CNN is in common use
+          today (in fact as of October 2020, it has just been added to NVIDIA's
+          suite of models to do instance prediction inside their Transfer
+          Learning Toolkit). Mask R-CNN is implemented in Detectron2, and can be
+          (relatively) easily trained and deployed to do instance prediction for
+          your use case.
+        </p>
+        <p>
+          In the next paper, we take this one step further, why stop at
+          predicting 2D masks...
+        </p>
+        <br />
+        <div id="disqus_thread"></div>
+        <script>
+          var disqus_config = function () {
+            this.page.url =
+              "https://www.harrysprojects.com/pages/object_detection/maskrcnn.html";
+            this.page.identifier = "maskrcnn";
+          };
+
+          (function () {
+            // DON'T EDIT BELOW THIS LINE
+            var d = document,
+              s = d.createElement("script");
+            s.src = "https://harrysprojects-com.disqus.com/embed.js";
+            s.setAttribute("data-timestamp", +new Date());
+            (d.head || d.body).appendChild(s);
+          })();
+        </script>
+        <noscript
+          >Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript"
+            >comments powered by Disqus.</a
+          ></noscript
+        >
+
+        <br />
+        <br />
+      </div>
+    </div>
+  </body>
+  <footer></footer>
+</html>

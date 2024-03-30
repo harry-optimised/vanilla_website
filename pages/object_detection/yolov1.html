@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Review and updated March 2024
+        canonical: yes
+        navbar: yes
+        images: yes
+        disqus: no
+        analytics: yes
+        accessible: yes
+        description: yes
+        title: yes
+        keywords: yes    
+        -->
+    <title>YOLO V1</title>
+    <meta
+      name="description"
+      content="The YOLO v1 architecture and how it works."
+    />
+    <meta name="author" content="Harry Turner" />
+    <meta
+      name="keywords"
+      content="learn, tutorial, paper, machine learning, deep learning, object detection, yolo, yolo v1, loss function, cells, anchors, priors, architecture, feature extraction, classification"
+    />
+    <link rel="icon" type="image/ico" href="/images/favicon.ico" />
+    <link href="/styles/styles.css" type="text/css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel=“canonical”
+    href=“https://www.harrysprojects.com/pages/object_detection/yolov1.html” />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <script src="/js/Navbar.js" type="text/javascript" defer></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "UA-180754451-1");
+    </script>
+  </head>
+  <body>
+    <div class="page-container">
+      <nav-bar></nav-bar>
+
+      <div>
+        <h1>YOLO V1</h1>
+        <p><i>16th January 2021</i></p>
+
+        <h3>You Only Look Once</h3>
+        <p>
+          YOLO (You Only Look Once) is a popular family of single-stage object
+          detectors, in this post I introduce YOLO v1. When v1 was released, it
+          was extremely fast, running at 45fps on a titan X GPU. Realtime object
+          detection is a big deal if you want to use the technology in the real
+          world, and even though YOLO v1 wasn't as accurate as some of the other
+          two-stage architectures at the time, they didn't run in real time.
+          When compared to other real time detectors, YOLO v1 wiped the floor
+          with them.
+        </p>
+        <h3>From Multi Box to YOLO</h3>
+        <p>
+          In the previous post I introduced
+          <a
+            href="https://www.harrysprojects.com/pages/object_detection/multibox.html"
+          >
+            Deep Multi Box</a
+          >. There's a reason I started with that paper, it provides a gentle
+          introduction to the idea of framing object detection as regression and
+          performing it in one pass. YOLO v1 is similar to Deep Multi Box in
+          that regard except that it also does class prediction, which makes it
+          a full object detector. There are also changes to the training
+          procedure and the adoption of anchors rather than priors, which I'll
+          point out later on.
+        </p>
+        <p>
+          As usual, I'll start by discussing the architecture, then the training
+          step and loss function, before wrapping up by comparing YOLO v1 to the
+          two-stage architectures. In my opinion, the most interesting and
+          relevant parts of this paper are in how they frame the problem as one
+          of regression, which is all done through the interpretation of the
+          network outputs. Therefore I'll spend most of this post digging into
+          that idea.
+        </p>
+        <h3>The Architecture</h3>
+        <div class="image-container">
+          <img src="/images/object_detection/yolov1/architecture.png" />
+          <p>
+            <i
+              >The YOLO V1 Architecture. Credit to Redmon [<a
+                href="https://arxiv.org/pdf/1506.02640.pdf"
+                >YOLO v1 Paper</a
+              >]</i
+            >
+          </p>
+        </div>
+        <p>
+          The architecture of YOLO v1 is not complicated, in fact it's just a
+          convolutional backbone with two fully connected layers, much like an
+          image classification network architecture. The clever part of YOLO
+          (the part that makes it an object detector) is in the interpretation
+          of the outputs of those fully connected layers. However, the concepts
+          underlying that interpretation are complex, and can be difficult to
+          grasp on a first reading. As I started writing about YOLO, I found
+          myself repeating lots of ideas that I've already written about in
+          other posts, and I don't want to repeat all that here. Therefore I'm
+          going to refer you to those posts that explain in much more depth the
+          concepts that I think are relevant.
+        </p>
+        <p>
+          Firstly, I recommend that you understand what anchors are, which I
+          explain in depth in my post on
+          <a
+            href="https://www.harrysprojects.com/pages/object_detection/fasterrcnn.html"
+            >Faster R-CNN</a
+          >. YOLO doesn't technically use anchors, but it uses a similar idea.
+          If you understand anchors then the discussion of the representation
+          presented shortly will feel familiar. Note that there are differences
+          between what YOLO does and the anchors defined in the RPN, so I'll
+          make sure to be clear on those differences at the end. Secondly, it
+          would benefit you to understand what box parameterisation is, in which
+          I go into detail in my post on
+          <a
+            href="https://www.harrysprojects.com/pages/object_detection/fastrcnn.html"
+            >Fast R-CNN</a
+          >. You don't need to understand the specifics of how Fast R-CNN does
+          parameterisation because YOLO does it differently, but it is important
+          that you understand that when an object detector predicts a bounding
+          box, you must always ask, <i>with respect to what?</i> If you are
+          familiar with those concepts, then let's continue.
+        </p>
+        <p>
+          Next, a quick note on the backbone. The authors designed their own
+          convolutional backbone which was inspired by GoogLeNet. But I just
+          want to point that it's just a feature extractor, and you could swap
+          in any backbone you like, and as long as you made the size of the
+          fully connected layers line up, it would all work fine. I won't dwell
+          on the backbone any longer, the object detection is all done in the
+          head. See my post on
+          <a
+            href="https://www.harrysprojects.com/pages/object_detection/fastrcnn.html"
+            >Fast R-CNN</a
+          >
+          for more detail on the difference between network backbones and heads.
+        </p>
+
+        <p>
+          As I said earlier, the network architecture is very simple, it's just
+          a backbone with two fully connected layers. Let's blow up that last
+          layer in a bit more detail. I'm going to refer to it as the
+          <i>output tensor</i> to make it easier to refer to.
+        </p>
+        <div class="image-container">
+          <img src="/images/object_detection/yolov1/output_tensor.png" />
+          <p><i>The output tensor from YOLO v1.</i></p>
+        </div>
+        <p>
+          The first thing you might notice is that I've been calling it a fully
+          connected layer, but it sure doesn't look like one. Don't let the 3D
+          shape fool you, it <i>is</i> fully connected, it is
+          <i>not</i> produced by a convolution, they just reshape it because
+          it's easier to interpret in 3D. If implemented in PyTorch, you can
+          imagine it being coded as a fully connected layer that is then
+          reshaped into a 3D tensor. Alternatively, you can imagine unrolling
+          the 3D tensor into one long vector of length
+          <code>1470 (7x7x30)</code>. However you imagine it, it is fully
+          connected, every output neuron is connected to every neuron in the
+          4096-vector before it.
+        </p>
+        <p>
+          So why reshape it into 3D? What do all those outputs mean? Why do
+          those outputs make it an object detector? I'll start with the reason
+          that it's <code>7x7</code>. To clarify my notation and make it easier
+          to talk about, I will refer to a <i>cell</i>, and what I mean by that
+          is a single position in the <code>7x7</code> grid of the output
+          tensor. Therefore each cell is a single vector of length 30, I have
+          highlighted one such cell in the diagram.
+        </p>
+        <p>
+          YOLO breaks the image up into a grid of size <code>7x7</code>. Let me
+          copy in the image from the paper. For the moment, focus on the left
+          part of the diagram, with the <code>SxS</code> grid.
+        </p>
+        <div class="image-container">
+          <img src="/images/object_detection/yolov1/anchors.png" />
+          <p>
+            <i
+              >Figure 2 from the YOLO V1 paper. Credit to Redmon [<a
+                href="https://arxiv.org/pdf/1506.02640.pdf"
+                >YOLO v1 Paper</a
+              >]</i
+            >
+          </p>
+        </div>
+        <p>
+          These cells represent prior boxes so that when the network predicts
+          box coordinates, it has something to reference them from. Remember
+          that earlier I said whenever you predict boxes, you have to say
+          <i> with respect to what?</i> Well it's with respect to these grid
+          cells. More concretely, the network can detect objects by predicting
+          scales and offsets from those prior boxes. As an illustrative example,
+          take the prior box on the second row down, second in from the right.
+          It's centered on the car, so it seems reasonable that this prior box
+          should be responsible for predicting the car. To predict the best box
+          possible, the network should output values that scaled this box out
+          horizontally so that it fit the car better, just the like pink box in
+          the final detections on the right of the diagram. The
+          <code>7x7</code> grid isn't actually drawn on the image, it's just
+          implied, and the thing that implies it is the <code>7x7</code> grid in
+          the output tensor. You can imagine overlaying the output tensor on the
+          image, and each cell corresponds to a part of the image. If you
+          understand anchors, this idea should feel famililar to you.
+        </p>
+        <p>
+          So each cell is responsible for predicting boxes from a single part of
+          the image. More specifically, each cell is responsible for predicting
+          precisely two boxes for each part of the image. Note that there are 49
+          cells, and each cell is predicting two boxes, so the whole network is
+          only going to predict 98 boxes. That number is fixed.
+        </p>
+        <p>
+          In order to predict a single box, the network must output a number of
+          things. Firstly it must encode the coordinates of the box which YOLO
+          encodes as <code>(x, y, w, h)</code>, where <code>x</code> and
+          <code>y</code> are the center of the box. Earlier I suggested you
+          familiarise yourself with box parameterisation, this is because YOLO
+          does <i>not</i> output the actual coordinates of the box, but
+          parameterised coordinates instead. Firstly, the width and height are
+          normalised with respect to the image width, so if the network outputs
+          a value of <code>1.0</code> for the width, it's saying the box should
+          span the entire image, likewise <code>0.5</code> means it's half the
+          width of the image. Note that the width and height have nothing to do
+          with the actual grid cell itself. The <code>x and y</code> values
+          <i>are</i> parameterised with respect to the grid cell, they represent
+          offsets from the grid cell position. The grid cell has a width and
+          height which is equal to <code>1/S</code> (we've normalised the image
+          to have width and height 1.0). If the network outputs a value of
+          <code>1.0</code> for <code>x</code>, then it's saying that the
+          <code>x</code> value of the box is the <code>x</code> position of the
+          grid cell plus the width of the grid cell.
+        </p>
+        <p>
+          Secondly, YOLO also predicts a confidence score for each box which
+          represents the probability that the box contains an object. Lastly,
+          YOLO predicts a class, which is represented by a vector of
+          <code>C</code> values, and the predicted class is the one with the
+          highest value. Now, here's the catch. YOLO does <i>not</i> predict a
+          class for every box, it predicts a class <i>for each cell</i>. But
+          each cell is associated with two boxes, so those boxes will have the
+          same predicted class, even though they may have different shapes and
+          positions. Let's tie all that together visually, let me copy down my
+          diagram again.
+        </p>
+        <div class="image-container">
+          <img src="/images/object_detection/yolov1/output_tensor.png" />
+          <p><i>The output tensor from YOLO v1.</i></p>
+        </div>
+        <p>
+          The first five values encode the location and confidence of the first
+          box, the next five encode the location and confidence of the next box,
+          and the final 20 encode the 20 classes (because Pascal VOC has 20
+          classes). In total, the size of the vector is
+          <code>5xB + C</code> where <code>B</code> is the number of boxes, and
+          <code>C</code> is the number of classes.
+        </p>
+        <p>
+          The way that YOLO actually predicts boxes, is by predicting target
+          scale and offset values for each prior, these are parameterised by
+          normalising by the width and height of the image. For example, take
+          the highlighted top right cell in the output tensor, this particular
+          cell corresponds to the far top right cell in the input image (which
+          looks like the branch of a tree). That cell represents a prior box,
+          which will have a width and height equal to the image width divided by
+          7 and image height divided by 7 respectively, and the location being
+          the top right. The outputs from this single cell will therefore shift
+          and stretch that prior box into new positions that hopefully contain
+          the object.
+        </p>
+        <p>
+          Because the cell predicts two boxes, it will shift and stretch the
+          prior box in two different ways, possibly to cover two different
+          objects (but both are constrained to have the same class). You might
+          wonder why it's trying to do two boxes. The answer is probably because
+          49 boxes isn't enough, especially when there are lots of objects close
+          together, although what tends to happen during training is that the
+          predicted boxes become specialised. So one box might learn to find big
+          things, the other might learn to find small things, this may help the
+          network generalise to other domains.
+        </p>
+
+        <p>
+          To wrap this section up, I want to point out one difference between
+          the approach that YOLO has taken, and the anchor boxes in the Region
+          Proposal Network. Anchors in the RPN actually refer to the nine
+          different aspect ratios and scales from a single location. In other
+          words, each position in the RPN predicts nine different boxes from
+          nine different prior widths and heights. In contrast, it's as if YOLO
+          has two anchors at each position,
+          <i>but they have the same width and height.</i>
+          YOLO does not introduce variations in aspect ratio or size into the
+          anchor boxes.
+        </p>
+        <p>
+          As a final note to help your intuition, it's reasonable to wonder why
+          they didn't predict a class for each box. What would the output look
+          like? You'd still have <code>7x7</code> cells, but instead of each
+          cell being of size <code>5xB + C</code>, you'd have
+          <code>(5+C) x B</code>. So for two boxes, you'd have 50 outputs, not
+          30. That doesn't seem unreasonable, and it gives the network the
+          flexibility to predict two different classes from the same location.
+        </p>
+        <h3>Training</h3>
+        <p>
+          YOLO is trained end to end, which is nice. End to end training,
+          especially of such a simple architecture means fewer problems for
+          things to go wrong, don't underrate it. The authors start by
+          pretraining their architecture on ImageNet. To do this they use the
+          first 20 convolutional layers, followed by an average pool and then
+          fully connected layer with 1000 outputs for the 1000 ImageNet classes.
+          This is standard image classification stuff and they claim they can
+          get close to the state-of-the-art (for the time) accuracy on ImageNet.
+          Remember they're only doing this to pretrain it.
+        </p>
+        <p>
+          They then convert the architecture for object detection by discarding
+          the average pool and fully connected layer. They then add a few more
+          convolutional layers, and set up the fully connected layers as they
+          are described above. The other thing they do is double the input size.
+          This is a common trick for object detectors, it helps to have
+          fine-grained input resolution, especially for finding small objects.
+        </p>
+        <p>
+          The training procedure itself isn't notable, as I've said multiple
+          times, the clever part of YOLO is in the interpretation of the
+          outputs. Because the network itself is simple, the training procedure
+          is also quite simple. The authors apply the usual tricks of dropout,
+          learning rate decay etc, these are all described in the paper. Of
+          course these are all important details but they're less relevant to
+          this post so I won't describe them here.
+        </p>
+        <p>
+          What is more interesting is the form of the loss function which I'll
+          go into next in some detail. This is because
+          <i
+            ><u
+              >the loss function is the method by which we interpret the network
+              outputs in any way we like</u
+            ></i
+          >. In other words, it's a lovely example of loss function design, by
+          which the authors set it up to coerce the network outputs to do the
+          task of object detection. It's also a nice example of how loss
+          function design can be difficult, and therefore need to be
+          supplemented with fudge factors and compromises, we'll see both in
+          action shortly.
+        </p>
+        <h3>Loss Function</h3>
+        <p>
+          The loss function is made up of five parts which we'll dive into in a
+          second. But first, a note on matching. To compute the loss between
+          predicted box and ground truth box, the training step must match them
+          together. But as I pointed out in my post on Deep Multi Box, there are
+          usually many more predicted boxes than ground truth boxes. Deep Multi
+          Box solves this by optimising the loss function itself using a form of
+          bipartisan matching. Two-Stage detectors like Fast R-CNN instead use
+          the IOU, matching the ground truth box to the predicted box that has
+          the highest overlap. This is the approach that YOLO uses, very simply
+          they match the ground truth to whichever predicted box has the current
+          highest IOU.
+        </p>
+        <p>
+          It's also worth pointing out that two-stage architectures also specify
+          a minimum IOU for defining negative background boxes, and their loss
+          functions explicitly ignore all predicted boxes that fall between
+          these thresholds. YOLO doesn't do this, most likely because it's
+          producing so few boxes anyway that it isn't a problem in practice.
+        </p>
+        <p>
+          Assuming that the matching is done, for the predicted boxes that are
+          matched to ground truth boxes the loss function is minimising the
+          error between those boxes, maximising the objectness confidence, and
+          maximising the liklihood of the correct class (which is shared between
+          two boxes remember). For all predicted boxes that are
+          <i>not matched</i> with a ground truth box, it is minimising the
+          objectness confidence, but ignoring the box coordinates and class
+          probabilities.
+        </p>
+        <p>
+          The loss function uses a special operator \( \color{#e83e8c}
+          \mathbf{1}_{ij}^{obj} \) that <i>selects</i>
+          the matched boxes. Specifically, \( \color{#e83e8c} i \) represents
+          the cell, and \( \color{#e83e8c} j \) represents the box. So \(
+          \color{#e83e8c} \mathbf{1}_{ij}^{obj} \) evaluates to 1 when the \(
+          \color{#e83e8c} j_{th} \) box from the \( \color{#e83e8c} i_{th} \)
+          cell is matched to any object, and 0 otherwise. \( \color{#e83e8c}
+          \mathbf{1}_{ij}^{noobj} \) is the opposite. \( \color{#e83e8c}
+          \mathbf{1}_{i}^{obj} \) evaluates to 1 when either of the boxes
+          associated with that cell are matched. Here is the loss function,
+          let's go through it term by term.
+        </p>
+        <div class="image-container">
+          <img src="/images/object_detection/yolov1/loss.png" />
+          <p><i>The loss.</i></p>
+        </div>
+        <p>
+          <b>1.</b> We loop over every cell, and loop over all boxes predicted
+          by that cell. If that box is matched with an object, then we minimise
+          the error between the center <code>(x, y)</code> of the predicted box
+          and the ground truth box by minimising the squared error.
+        </p>
+        <p>
+          <b>2.</b> We loop over every cell, and loop over all boxes predicted
+          by that cell. If that box is matched with an object, then we minimise
+          the error between the width and height of the predicted box and the
+          ground truth box by minimising the squared error. We'll talk about why
+          it's the square root in a moment.
+        </p>
+        <p>
+          <b>3.</b> We loop over every cell, and loop over all boxes predicted
+          by that cell. If that box is matched with an object, then we minimise
+          the error between the predicted box confidence and ground truth box
+          confidence. Note that the ground truth box confidence is defined to be
+          1.0 by definition (all ground truth boxes obviously contain objects).
+        </p>
+        <p>
+          <b>4.</b> We loop over every cell, and loop over all boxes predicted
+          by that cell. If that box is <i><u>not matched with an object</u></i
+          >, then we minimise the error between the predicted box confidence and
+          the value <code>Ci</code> which is defined to be 0.0 when there is no
+          match. This term is written in a weird way but it essentially drives
+          all non-matched boxes to have zero objectness confidence.
+        </p>
+        <p>
+          <b>5.</b> Finally we loop over every cell. If at least one box in that
+          cell is matched to an object, then we minimise the error between the
+          predicted probability of the class and the ground truth probability of
+          the class, for all classes. Given that the ground truth object belongs
+          to one class, the ground truth probability is 1.0 for that class, and
+          0.0 for all others.
+        </p>
+        <p>
+          Notice that the form of each term is the Sum of Squared Errors (SSE).
+          Although this might work, it's unlikely that this is the best thing to
+          do, and the authors make that point in the paper. To see why, note
+          that the SSE of the objectness confidence is likely to be of a
+          different scale to the SSE between the box coordinates. This also
+          applies to the class probabilities. Making all the terms SSE makes it
+          easier to understand, but there is a risk that certain terms
+          <i>drown out</i> other terms because they end up being larger
+          magnitude. In recognition of this, the authors add a fudge factor, the
+          \( \color{#e83e8c} \lambda_{coord} \) factor is added to the loss
+          function terms that quantify box coordinate error. \( \color{#e83e8c}
+          \lambda_{coord} \) is 5 in the paper.
+        </p>
+        <p>
+          Another problem with object detection in general (not just YOLO), is
+          that most of the time, there are not that many ground truth objects,
+          but the detector will predict lots of boxes, in this case, 98.
+          Therefore most boxes will not be matched. This can sometimes produce
+          an overwhelmingly large signal from the 4th term in the loss function,
+          as every unmatched box is driven to 0, and this can drown out the
+          signal from the matched boxes. Again, to solve this we just add a
+          fudge factor of \( \color{#e83e8c} \lambda_{noobj} \) which is 0.5, to
+          reduce the impact of those unmatched boxes.
+        </p>
+        <p>
+          Yet another problem with this loss function is that the boxes are not
+          parameterised properly. To see why notice that the loss function for
+          term 2 is a function of the difference between the width and height.
+          For small boxes, a difference in width of a few tens of pixels would
+          be so significant that it might miss the object altogether. However
+          for big boxes that filled half the screen, a difference of a few tens
+          of pixels would might only clip off a tiny part of the object, so it's
+          much less of a big deal. R-CNN solves this problem by parameterising
+          the boxes in a different way (which I believe is the best way to solve
+          this problem). The authors for YOLO simply minimise the difference
+          between the square roots, because as the boxes get bigger, the square
+          roots don't grow as fast. Although this doesn't solve the problem
+          entirely, it does help.
+        </p>
+        <p>
+          One last thing to point out is that the SSE probably isn't the best
+          term for the class probabilities, they would probably be better
+          trained with the cross entropy.
+        </p>
+        <h3>Comparisons with Two-Stage Architectures</h3>
+        <p>
+          To wrap up, I want to point out some of the differences between this
+          architecture and two-stage architectures. The most obvious difference
+          is that training is done end to end, inference is done end to end, the
+          whole network is easier to train and run. Two-stage detectors on the
+          other hand can be complicated beasts. Theres always something to be
+          said for simplicity. However at the cost of being simple, YOLO v1
+          suffers from poorer accuracy, and this is inherent from the
+          architecture itself. There are only 49 cells, and each cell only
+          predicts two boxes, therefore the network struggles to predict lots of
+          boxes that are close to each other, like crowds of people for example.
+          I want to point out the similarity between YOLO v1 and the Region
+          Proposal Network of Faster R-CNN. The RPN is basically doing the same
+          thing as YOLO, it starts with anchor boxes and predicts object regions
+          but does not predict classes. The whole architecture then uses the
+          predicted objectness to filter the proposed boxes and do Non Maximum
+          Suppression before they go into the next stage. Could you turn the RPN
+          into YOLO? Well not really because they do have very different
+          architectures, YOLO is fully connected from the featuremap onwards,
+          whereas the RPN predicts box proposals with convolutions done over the
+          feature map. However if you added more classes to the class branch of
+          the RPN then you would have something that looked like a one-stage
+          detector. In fact this is where we're going next with the Single Shot
+          Detector (SSD). What YOLO v1 lacks in localisation accuracy it makes
+          up for in speed, and throughout the paper the authors regularly point
+          out the speed benefit of their network. It's a fair point as it's the
+          main selling point of YOLO, for a real time detector the accuracy was
+          good, not far off the two-stage detectors. Next, YOLO makes fewer
+          background errors than two stage and sliding window approaches. This
+          is because YOLO reasons globally about an image. The whole image
+          passes through the feature extractor and then the boxes are predicted
+          in a fully connected fashion from this feature map, each predicted box
+          can use information from the whole image. This is in contrast to
+          two-stage architectures that only look at a local context (remember
+          the RPN that uses convolutions over a patch of the image to predict
+          boxes?) Lastly I just wanted to point out that the authors show how
+          YOLO can be used in practice by including a section in the paper on
+          connecting the network up to a webcam and verifying it maintains real
+          time performance and detects objects properly. There used to be a demo
+          of this on the website but that's been taken down now. It's nice to
+          see the connection of academic work to real world applications.
+        </p>
+        <p>
+          I went into quite a bit of detail in this post because it's the first
+          proper single stage detector we've looked at (except for Multi Box).
+          In future posts I'll start to just focus on the differences and will
+          refer back to earlier papers when needed.
+        </p>
+
+        <br />
+        <div id="disqus_thread"></div>
+        <script>
+          var disqus_config = function () {
+            this.page.url =
+              "https://www.harrysprojects.com/pages/object_detection/yolov1.html";
+            this.page.identifier = "yolov1";
+          };
+
+          (function () {
+            // DON'T EDIT BELOW THIS LINE
+            var d = document,
+              s = d.createElement("script");
+            s.src = "https://harrysprojects-com.disqus.com/embed.js";
+            s.setAttribute("data-timestamp", +new Date());
+            (d.head || d.body).appendChild(s);
+          })();
+        </script>
+        <noscript
+          >Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript"
+            >comments powered by Disqus.</a
+          ></noscript
+        >
+
+        <br />
+        <br />
+      </div>
+    </div>
+  </body>
+  <footer></footer>
+</html>

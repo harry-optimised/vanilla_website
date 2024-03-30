@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Review and updated March 2024
+        canonical: yes
+        navbar: yes
+        images: yes
+        disqus: yes
+        analytics: yes
+        accessible: yes
+        description: yes
+        title: yes
+        keywords: yes
+        -->
+    <title>Thea - Analysing Camera Trap Images</title>
+    <meta
+      name="description"
+      content="This was a project in end to end machine learning system design. Specifically,
+        I design and build a machine learning backed camera trap image analysis and management product. This post
+         is an overview of the design & implementation, plus a product demonstration."
+    />
+    <meta name="author" content="Harry Turner" />
+    <meta
+      name="keywords"
+      content="Django, React, Redux, Camera Trap, Thea, Machine Learning"
+    />
+    <link rel="icon" type="image/ico" href="../../images/favicon.ico" />
+    <link href="../../styles/styles.css" type="text/css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel=“canonical”
+    href=“https://www.harrysprojects.com/pages/miscellaneous/thea.html” />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="../../js/Navbar.js" type="text/javascript" defer></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "UA-180754451-1");
+    </script>
+  </head>
+  <body>
+    <div class="page-container">
+      <nav-bar></nav-bar>
+
+      <div>
+        <h1>Thea - An ML Camera Trap Image Analysis Tool</h1>
+        <p><i>8th August 2021</i></p>
+        <p>
+          A friend of mine is enthusiastic about using camera traps to detect
+          wildlife in his garden, and has successfully snapped a few photos of
+          deer, cats, badgers, foxes, and the occasional bird. He's also
+          unsuccessfully snapped thousands more photos of branches and leaves
+          which trigger the camera every time the wind blows. This means that
+          after leaving the camera on for just one night, he has to sift through
+          thousands of photos by hand to find the ones with the wildlife in. I
+          thought this would be a problem ripe for machine learning and set
+          about building a system to help him out.
+        </p>
+        <p>
+          What follows is a brief overview of what I built. This first section
+          is a quick introduction to the aims of the project, section two is an
+          overview of the product, and section three is a summary of the
+          technology and design. Much more detail on how it works can be found
+          in the
+          <a href="https://github.com/HarryTurner93/thea">Project GitHub</a>
+          including a video demo and instructions on how to download and run for
+          yourself (if you can run docker containers on your local machine).
+        </p>
+        <p>
+          I built this system mostly as an excercise in end-to-end web system
+          development with embedded ML. Building the ML model for detecting
+          animals in camera traps was fun, but what I was more interested in
+          this time was wrapping that model in an application that actually
+          allowed an end user camera trap enthusaist to use it!
+        </p>
+        <p>
+          This project is 10% machine learning, 50% front end and UI design and
+          implementation, 30% backend system design and implementation, and
+          about 20% documentation. There's some testing in there as well, don't
+          worry.
+        </p>
+        <p>
+          I have <b><i>not</i></b> deployed this system into production, partly
+          because I don't want to pay out for running ML on AWS, or storing
+          hundreds of Gbs of images which can get expensive quickly. That being
+          said, this system could be made production ready with a couple of
+          tweaks.
+        </p>
+        <h3>Thea</h3>
+        <p>
+          You are first greeted with a login screen with a faded map behind it.
+          This is the actual map that the system uses to navigate and display
+          cameras, it simply defaults to show Bristol and doesn't let you click
+          or interact with it until you're logged in. I thought it was quite a
+          nice visual effect with the frosted glass look placed over the top.
+          The login will attempt to retrieve a token from the backend using the
+          provided credentials, if this user doesn't exist it'll deny access. If
+          it does then the returned token is stored in application state, the
+          presence of the token is what triggers the login to dissapear and let
+          the map show through, it looks very snazzy.
+        </p>
+        <div class="image-container">
+          <img src="../../images/miscellaneous/thea/login.png" />
+          <p>
+            <i
+              >The login screen is displayed on top of the map with a frosted
+              glass effect.</i
+            >
+          </p>
+        </div>
+        <p>
+          After logging in the user can navigate the map which uses the mapbox
+          API and acts just like google maps. When the user logs in
+          successfully, it retrieves from the backend any cameras stored against
+          the users account and displays these on the map in their corresponding
+          positions.
+        </p>
+        <p>
+          You can add a new camera by clicking the '+' icon in the top right, it
+          then asks you to click on the map where you want it, then asks you to
+          give it a name. Finally it saves this new camera to the database and
+          places it on the map.
+        </p>
+        <div class="image-container">
+          <img src="../../images/miscellaneous/thea/cameras.png" />
+          <p>
+            <i
+              >The interactive map shows icons where the cameras are located.</i
+            >
+          </p>
+        </div>
+        <p>
+          If a camera icon is clicked, it loads the details in a popout pane
+          which shows the name, location, and the number of images currently
+          stored against this camera, which starts off empty. You can delete the
+          camera from this pane, upload images, or open the image browser to see
+          the attached images as long as at least one image exists.
+        </p>
+        <div class="image-container">
+          <img src="../../images/miscellaneous/thea/camera_detail.png" />
+          <p>
+            <i>The camera details are shown when the icon is clicked on.</i>
+          </p>
+        </div>
+        <p>
+          The user can upload images by clicking on 'Select file' which opens a
+          dialog that lets them select images from their machine. If they then
+          click 'Upload' it uploads these images to the backend and stores them
+          against that camera. The images can then be accessed by clicking on
+          'Browse Images'. Note that they can only be seen by browsing images on
+          this camera, if you browse images on another camera you'll see the
+          images uploaded to that one instead.
+        </p>
+        <p>
+          Once the user clicks 'Browse Images' they can see the images they
+          uploaded. Six images are shown per page with the scores for each
+          animal displayed below each image. Pagination options are in the
+          bottom left allowing the user to go back and forth through the pages
+          and jump to a page. At the top are three buttons that let the user
+          sort by the probabilities for each animal, so clicking Fox will rank
+          all the images with those with highest scores for Fox appearing first.
+        </p>
+        <p>
+          Notice the 'Waiting for results...' spinner on some of the images.
+          This gets shown whilst the image has not yet been processed by the
+          backend. The frontend will keep polling the backend every second until
+          all images on the page have their results.
+        </p>
+        <div class="image-container">
+          <img src="../../images/miscellaneous/thea/browser.png" />
+          <p>
+            <i
+              >The image browser showing the images uploaded against this
+              camera.</i
+            >
+          </p>
+        </div>
+
+        <h3>How it Works</h3>
+        <p>
+          In this section I'll briefly describe how I built this system, however
+          more details can be found in the github
+          <a href="https://github.com/HarryTurner93/thea/blob/main/DESIGN.md"
+            >Design Document</a
+          >.
+        </p>
+        <p>
+          The stack is composed of a Django REST application that talks to both
+          PostgreSQL and S3 (although for development and demonstration I used
+          localstack rather than the actual AWS S3). Django simply implements a
+          few model views that let the frontend fetch cameras and images from
+          the database for each user.
+        </p>
+        <p>
+          The frontend is React + Redux + Mapbox, all written in Typescript for
+          typing safety. I started using Typescript for the first time on this
+          project and hated it at first because everything I typed was somehow
+          incorrect. Now I love it and realised it's saving me lots of future
+          issues.
+        </p>
+        <p>
+          The machine learning models run in a Celery task worker out of the
+          main processing loop, this is a very simple implementation of an event
+          based architecture where the Django app pushes a message onto the
+          queue for every image uploaded and a worker slowly works it way
+          through that queue processing the images and writing the results to
+          the database. This lets the user upload images and continue on with
+          their day (or continue to use the app) whilst the backend chugs along
+          processing their data. They can go into the browser and watch the
+          progress too.
+        </p>
+        <p>
+          For the ML I use PyTorch. I trained a model in one of my other repos
+          using PyTorch and PyTorch Lightning, then I deploy this model into the
+          celery worker by loading it in PyTorch. It's a fairly simple
+          deployment procedure, there's no model versioning or monitoring in
+          place, but it's okay for small applications.
+        </p>
+        <h3>Conclusion</h3>
+        <p>
+          This was a fun project, and one I'll likely come back to and improve
+          over time. For me it acts mostly as a reference project that I can
+          come back to in the future to recall how something was implemented,
+          and due to the comprehensive documentation I spent a lot of time on,
+          I'll be able to see my rationale as well.
+        </p>
+        <p>
+          <i><b>Side Note: Why Thea?</b></i> To make a long story short, a
+          friend and I explored the possibility of building a startup a few
+          years back, and whilst it didn't go anywhere, we did try out a few
+          ideas of which this was one of them. That startup would have been
+          called Thea.
+        </p>
+        <br />
+        <div id="disqus_thread"></div>
+        <script>
+          var disqus_config = function () {
+            this.page.url =
+              "https://www.harrysprojects.com/pages/miscellaneous/thea.html";
+            this.page.identifier = "nature_view_2";
+          };
+
+          (function () {
+            // DON'T EDIT BELOW THIS LINE
+            var d = document,
+              s = d.createElement("script");
+            s.src = "https://harrysprojects-com.disqus.com/embed.js";
+            s.setAttribute("data-timestamp", +new Date());
+            (d.head || d.body).appendChild(s);
+          })();
+        </script>
+        <noscript
+          >Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript"
+            >comments powered by Disqus.</a
+          ></noscript
+        >
+
+        <br />
+        <br />
+      </div>
+    </div>
+  </body>
+  <footer></footer>
+</html>

@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Review and updated March 2024
+        canonical: yes
+        navbar: yes
+        images: yes
+        disqus: yes
+        analytics: yes
+        accessible: yes
+        description: yes
+        title: yes
+        keywords: yes    
+        -->
+    <title>Active Learning for Object Detection</title>
+    <meta name="description" content="Active Learning for Object Detection." />
+    <meta name="author" content="Harry Turner" />
+    <meta
+      name="keywords"
+      content="active learning object detection uncertainty sampling diversity sampling vaarst"
+    />
+    <link rel="icon" type="image/ico" href="/images/favicon.ico" />
+    <link href="/styles/styles.css" type="text/css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel=“canonical”
+    href=“https://www.harrysprojects.com/pages/active_learning/objectal.html” />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <script src="/js/Navbar.js" type="text/javascript" defer></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "UA-180754451-1");
+    </script>
+  </head>
+  <body>
+    <div class="page-container">
+      <nav-bar></nav-bar>
+
+      <div>
+        <h1>Introduction to Active Learning for Object Detection</h1>
+        <p><i>24th April 2021</i></p>
+        <h3>Introduction</h3>
+        <p>
+          At work recently, we were solving a problem that required us to label
+          some data with object bounding boxes so that we could train an object
+          detector. We could have just fired up our labelling tool of choice,
+          <a href="https://github.com/openvinotoolkit/cvat">CVAT</a> and started
+          drawing boxes, but there were a couple of challenges we needed to
+          think carefully about first.
+        </p>
+        <p>
+          Firstly, all our data had come from video. I work in subsea robotics,
+          so many of these videos were coming from survey data collected by
+          Remotely Operated Vehicles (ROVs). Whilst it is easy to annotate
+          videos, for various reasons we prefer to work with images so we picked
+          one of these videos and extracted one frame every second to produce a
+          pool of images to label. Unfortunately, every image in the pool was
+          identical.
+        </p>
+        <p>
+          It wasn't a problem with our extraction script because the timestamp
+          overlay in the video was changing correctly, the reason was because
+          the ROV had spent 20 minutes just sitting on the sea floor doing
+          nothing. About halfway through the video a fish swam past but that's
+          about it. Labelling all of these almost identical images would be
+          inefficient. <b><i>We needed to ensure diversity in our data.</i></b>
+        </p>
+        <p>
+          We had another problem. 90% of the videos came from just 10% of the
+          surveys. There were some surveys that had over 600 hours of video
+          associated with them, and others only one or two but the properties of
+          those rare videos were different - different cameras or ROVs were
+          being used, different assets, different water conditions, different
+          underwater visibility, etc. If we wanted to build a robust model that
+          would work correctly across a wide range of surveys, we would need to
+          make sure our training data contained at least a few images from every
+          survey we had.
+          <b
+            ><i
+              >We needed to ensure our target domain was properly
+              represented.</i
+            ></b
+          >
+        </p>
+        <p>
+          Finally, we extracted one frame every second for all the survey videos
+          we could get our hands on and ended up with over a million images to
+          label. Labelling one image with bounding boxes takes maybe 10 seconds
+          to do it quickly yet carefully, so it was looking like we'd be
+          labelling data for the next 6 months.
+          <b><i>We needed a more efficient approach.</i></b>
+        </p>
+        <p>
+          The solution to all these problems is called
+          <b>active learning</b> which simply says that if you have a limited
+          labelling budget (which we did), and a large pool of images to label
+          (which we did), then here is a set of techniques to find the most
+          valuable images to label to get the largest improvement in your model.
+        </p>
+        <p>
+          In this post I introduce active learning for object detection in
+          particular. I spent a bit of time on this problem and will write up
+          what I discovered and how we went about solving the problem with our
+          own active learning system. Specifically, I'll introduce active
+          learning in general, including the two main types of sampling. Then
+          I'll talk a bit about the challenges for object detection. Then
+          finally I'll wrap up by presenting the active learning system we use
+          everyday.
+        </p>
+        <h3>What Is Active Learning?</h3>
+        <p>
+          Active learning is a set of techniques for determining which images
+          are the most valuable ones to label next, with the goal of improving
+          your model performance. There are different active learning scenarios,
+          here I assume a pool-based scenario which is where we have an
+          unchanging pool of unlabelled images and we can choose to label
+          <i>any</i> of them, but we don't have enough time to label
+          <i>all</i> of them.
+        </p>
+        <p>
+          We follow the process indicated in the digram below. We start with a
+          model that has been trained on at least some data, then we use that
+          model to score all the images in the unlabelled pool. When I say we're
+          using the model to score the images, I don't mean we predict a class,
+          or a bounding box. We're going to use a special active learning
+          technique that uses the <i>model confidence</i> to score the images
+          with something called the <b>uncertainty score</b>. Images with high
+          scores are more useful to the model and more valuable to annotate.
+        </p>
+        <p>
+          We then label the highest scoring images, remove them from the pool
+          and add them to the training set, then we retrain the model and
+          repeat. For deep learning it's not practical to retrain the model
+          after every image so we usually sample a batch of images per
+          iteration.
+        </p>
+        <div class="image-container">
+          <img src="/images/active_learning/objectal/loop.png" />
+          <p><i>The Active Learning Loop</i></p>
+        </div>
+        <h3>Valuable Images</h3>
+        <p>
+          We want to find images that are the most valuable to label, but what
+          does that mean? Valuable images are those that will improve our model
+          performance, in other words they would change our models performance
+          on a test set if we were to add them to the training set, which means
+          they must be images that lie near a decision boundary. Another way to
+          think about it is if we gave the model one of these images and it got
+          the answer wrong, then adding it to the training set would probably
+          help it do better on similar images in the future. The problem is we
+          don't have labels for this image yet so we don't know if the model
+          would get it wrong. Instead, we look for images that our model is
+          uncertain about instead. This is called <b>uncertainty sampling</b>.
+        </p>
+        <p>
+          There are lots of ways to do uncertainty sampling and I have written a
+          <a href="https://harrysprojects.com/articles/uncertaintysampling.html"
+            >separate article</a
+          >
+          about this going into depth on a few common (and not so common)
+          techniques, but I just want to give you a little bit of intuition
+          here.
+        </p>
+        <p>
+          Imagine you have a model with a <i>single output</i> that was
+          predicting the presence of a rock in a subsea survey video. Rocks are
+          important to detect because they can damage nearby assets so this is a
+          real world problem. The output of the network is bounded between
+          <code>0</code> and <code>1</code> so for a given image if the network
+          predicts <code>0.99</code> then we interpret that to mean that it's
+          very confident that there is a rock in the image. On the other hand if
+          it predicts <code>0.01</code>, then it's equally confident there is
+          <i>no rock</i>. Note that we're treating this output as a probability,
+          <i>not a confidence</i>, a small value does not mean that's it's not
+          confident, it means it's confident in the absence of the class! We've
+          got two outcomes, rock or no rock, therefore this is binary
+          classification problem.
+        </p>
+        <p>
+          Now notice that because this is a binary problem, if the model
+          predicts <code>0.5</code>, then it's completely uncertain on whether
+          there's a rock in the image. The closer to <code>0.5</code> the
+          prediction is, the more uncertain the model is and the more valuable
+          the image would be to label. Therefore a simple (but quite effective)
+          uncertainty sampling strategy in this case would be to choose all the
+          images with predictions closest to <code>0.5</code>. uncertainty
+          scores are typically bounded between <code>0</code> and
+          <code>1</code>, so we need to normalise this. In practice, for each
+          image we would compute it's uncertainty score with the following
+          equation, where \( \color{#e83e8c} p \) is the predicted probability
+          of a rock being present in the image. See how when \( \color{#e83e8c}
+          p = 0.5 \), the score is <code>1</code>, and when \( \color{#e83e8c} p
+          = 0 \) or \( \color{#e83e8c} p = 1 \), the score is <code>0</code>.
+        </p>
+        <div class="image-container">
+          <p>\( \color{#e83e8c} Uncertainty Score = 1 - abs(1 - 2p) \)</p>
+          <p>
+            <i>A simple uncertainty scoring function for binary problems.</i>
+          </p>
+        </div>
+        <p>
+          There is a problem with uncertainty sampling however - your strategy
+          may end up sampling lots of very similar images. To see why, recall
+          that we're sampling a batch of images at each iteration, without
+          retraining the model. That means that the same model is being used to
+          select the first image as the last image in the batch. Look at the
+          example below of images that confused our model, they're cloudy images
+          where the sand had been kicked up, when we ran uncertainty sampling we
+          got 100 images that all looked like this, beause the model was
+          confused on all of them.
+        </p>
+        <div class="image-container">
+          <img src="/images/active_learning/objectal/cloudy.png" />
+          <p>
+            <i
+              >Uncertainty sampling on it's own often results in lots of very
+              similar images with no diversity.</i
+            >
+          </p>
+        </div>
+        <p>
+          Technically, uncertainty sampling has done the right thing, it's
+          chosen the images that it was most confused about. But notice that
+          <i
+            >if we labelled 10 cloudy images and added them to the training
+            set</i
+          >
+          then the model probably wouldn't be as confused on the remaining 90.
+          So we probably don't need to label all 100 of them. What we really
+          want is for our sampling strategy to choose a images that it is
+          uncertain about, that are also diverse and cover the input space.
+        </p>
+        <p>
+          This problem is solved with <b>diversity sampling</b>, which attempts
+          to select a diverse range of images that all look different to each
+          other. It attempts to find images from the far corners of the input
+          space that our model probably hasn't seen before. This means our model
+          will be exposed to a diverse range of data covering lots of different
+          images.
+        </p>
+        <div class="image-container">
+          <img src="/images/active_learning/objectal/outlier.png" />
+          <p><i>Our set of images after we've done diversity sampling.</i></p>
+        </div>
+        <p>
+          To conclude, we need uncertainty sampling to find images that our
+          model is confused about, those will have the biggest impact on the
+          model performance. We also want to make sure that our set of selected
+          images is diverse so that we're not wasting labelling time labelling
+          the same type of image again and again, and that we're covering our
+          input space as much as possible.
+        </p>
+        <h3>Uncertainty Sampling for Object Detection</h3>
+        <p>
+          I originally listed several popular uncertainty sampling techniques in
+          this section but the article started getting unwieldy so I've moved
+          them to a<a
+            href="https://harrysprojects.com/articles/uncertaintysampling.html"
+          >
+            separate article</a
+          >
+          which you can skip for now without loss of continuity. Instead I'm
+          going to spend this section introducing the unique challenges that
+          object detection poses for active learning. The important takeaway is
+          that any uncertainty sampling technique I cover in the other article
+          can be used here.
+        </p>
+        <p>
+          Because we're doing uncertainty sampling for object detection, I'm
+          first going to describe the representation of our box predictions that
+          our sampling strategies will have to work with. We designed our object
+          detectors to output a list of Python dictionaries where each
+          dictionary contains the probability distribution over classes, and the
+          predicted box. If we just wanted to get the most likely class, we
+          would take the argmax over the class probabilities and predict that
+          class (assuming we have a mapping somewhere from class index to actual
+          label).
+        </p>
+        <div class="image-container">
+          <img src="/images/active_learning/objectal/representation.png" />
+          <p>
+            <i
+              >The output from our detectors is a list of dictionaries
+              containing box coordinates and a distribution over class
+              probabilities.</i
+            >
+          </p>
+        </div>
+        <p>
+          The first challenge for object detection is that we have two kinds of
+          uncertainty, uncertainty in the label prediction, and uncertainty in
+          the localisation prediction (bounding box). We can use the probability
+          distribution over classes to analyse uncertainty in the label, but as
+          I've described it
+          <i
+            >our model does not output any measure of uncertainty on the box
+            prediction!</i
+          >
+          This is pretty common, most object detectors will only output
+          distributions over classes.
+        </p>
+        <p>
+          It turns out in this case, that our problem only required us to detect
+          whether an object existed in the image, we didn't need to know where
+          it actually was. Therefore we did not care about the accuracy of the
+          bounding box, only the predicted label and label confidence. For our
+          use case it was enough for us to do active learning on only the class
+          predictions, however this isn't always the case and your situation
+          might differ. A common technique for assessing bounding box
+          uncertainty is to train an ensemble of models and have them all
+          predict the box, you can then average the boxes and use the level of
+          agreement between detectors as a measure of uncertainty. This is a
+          form of active learning called Query by Committee and one way to
+          compute agreement would be to compute the IoU between the boxes.
+        </p>
+        <p>
+          The other challenge with object detection is that we may have images
+          with lots of objects. Most uncertainty scores operate on a single
+          class distribution for a single box, but we want a single score for an
+          image so we need to aggregate those scores somehow. The simplest
+          techniques are to average scores across boxes, or take the maximum.
+          Alternatively we could select only the top N most uncertain scores and
+          take the maximum or average of those.
+        </p>
+        <p>
+          This is not an trivial decision though and it depends on the problem
+          you're trying to solve. Should we should prefer images where our
+          detector is confident on 90% of the boxes but uncertain about the
+          rest? Or should we prefer images where the detector is uncertain about
+          all of them. If we take the maximum then we're going to be prone to
+          selecting outliers - an image with a single uncertain box will be
+          selected even if all the others are confident. If we take the average
+          then we'll be biased towards images with large numbers of objects.
+        </p>
+        <p>
+          There's no easy answer to these questions, it depends on the use case.
+          I'll show how we tackled our problem later on.
+        </p>
+        <h3>Diversity Sampling for Object Detection</h3>
+        <p>
+          For the same reason as uncertainty sampling, I moved all the content
+          on different diversity sampling techniques into a
+          <a href="https://harrysprojects.com/articles/diversity sampling.html"
+            >dedicated article on diversity sampling</a
+          >
+          where I can go into a lot more detail. The important thing is that you
+          can use any of those diversity sampling techniques here as well.
+        </p>
+        <h3>Our System</h3>
+        <p>Here's how we do active learning for object detection at Vaarst.</p>
+        <p>
+          We built a large, custom-made data store for images extracted from our
+          survey videos, some of these are labelled, some aren't. The store lets
+          us browse our data, filter by survey or client, search for data
+          already labelled, or find similar images.
+        </p>
+        <div class="image-container">
+          <img src="/images/active_learning/objectal/aquarium.png" />
+          <p>
+            <i>Our custom data store for browsing and creating datasets.</i>
+          </p>
+        </div>
+        <p>
+          One way we use this store is to search for images across all our
+          surveys that have been annotated for a particular class that we care
+          about, and then we may train a model on that. More often than not
+          though, we need to label more data to improve our model performance on
+          that task. The first thing we do therefore is to train a model on
+          whatever existing relevant data we have, just so that we have a
+          baseline model. Now we can begin the active learning process.
+        </p>
+        <p>
+          Next, we use the data store to filter for the set of images we want to
+          consider which will become the unlabelled pool. It's okay if there are
+          already labelled images in there, the system will make sure it doesn't
+          overwrite those annotations. For example, we may pick a particular
+          survey or asset that we know our model struggles on and limit the
+          selection to just that. Alternatively we could just run active
+          learning on the entire datastore, but that's a very compute intensive
+          process and isn't usually needed. In example screenshot above I have
+          filtered by a single asset which I know we haven't yet labelled. There
+          are 43,000 images here.
+        </p>
+        <p>
+          Next we open the active learning dialog which lets us enter the
+          settings for running the process. We first setup uncertainty sampling
+          which requires selecting the model we want to use, in this case the
+          boulder detector we trained earlier. We then choose how many images
+          we're going to keep after the uncertainty sampling step, and the
+          uncertainty kernel we wish to use. Finally we choose how many to keep
+          after doing diversity sampling, we tell the system where we want the
+          data downloaded, and then we press 'Go'.
+        </p>
+        <div class="image-container">
+          <img src="/images/active_learning/objectal/active_learning.png" />
+          <p><i>Setting up the active learning process.</i></p>
+        </div>
+        <h3>Behind the Scenes</h3>
+        <p>
+          We do diversity sampling by filtering. The first thing the system does
+          is to compute the uncertainty score on all the images using the
+          specified kernel, in this case it was Entropy, although we have a
+          choice of options that we've implemented. Recall the aggregation
+          problem I mentioned earlier? We choose to aggregate by selecting the
+          top N most uncertain boxes per image and aggregate those by taking the
+          average - note that these options are configurable so we can select
+          them for a particular task.
+        </p>
+        <p>
+          For the boulder detection task, the use case is to determine whether
+          an object exists within an image. We don't care where it actually is,
+          and we don't care if there's more than one, so it's most important for
+          our models to be confident when there is
+          <i>no object present vs one or two objects present</i>. Therefore for
+          this usecase we choose a low value for N, like N = 2. The intuition is
+          that if the model predicts a few boxes very confidently but is not
+          confident about some of the harder cases, then as far as I'm concerned
+          the model is certain enough on this image and it doesn't need
+          labelling.
+        </p>
+        <p>
+          Once the system has ranked the images, it keeps only the top \(
+          \color{#e83e8c} x \) where \( \color{#e83e8c} x \) is specified in the
+          config dialog, and discards the rest. The system then carries out
+          diversity sampling on the remaining images to select the \(
+          \color{#e83e8c} y \) most diverse where \( \color{#e83e8c} y \) is
+          also configurable. This is a simple technique but it works remarkably
+          well. There's a lot to be said for simplicity in production systems.
+        </p>
+        <p>
+          The rest of the process is pure engineering. Our system does all this
+          work and then dumps the images into our labelling tool automatically
+          so that we can start labelling. Then we download the annotations from
+          CVAT and our system can import the CVAT file format so we simply
+          upload the labelled data straight back into our data store. From there
+          we can quickly train a new model and repeat the process again and
+          again - the whole process is geared towards going around that active
+          learning loop as quickly as we can.
+        </p>
+        <h3>References</h3>
+        <p>
+          <a href="https://arxiv.org/abs/2004.04699"
+            >Scalable Active Learning for Object Detection</a
+          >
+        </p>
+        <p>
+          <a
+            href="https://www.manning.com/books/human-in-the-loop-machine-learning"
+            >Human in the Loop Machine Learning</a
+          >
+        </p>
+        <br />
+        <div id="disqus_thread"></div>
+        <script>
+          var disqus_config = function () {
+            this.page.url =
+              "https://www.harrysprojects.com/pages/active_learning/objectal.html";
+            this.page.identifier = "objectal";
+          };
+
+          (function () {
+            // DON'T EDIT BELOW THIS LINE
+            var d = document,
+              s = d.createElement("script");
+            s.src = "https://harrysprojects-com.disqus.com/embed.js";
+            s.setAttribute("data-timestamp", +new Date());
+            (d.head || d.body).appendChild(s);
+          })();
+        </script>
+        <noscript
+          >Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript"
+            >comments powered by Disqus.</a
+          ></noscript
+        >
+
+        <br />
+        <br />
+      </div>
+    </div>
+  </body>
+  <footer></footer>
+</html>

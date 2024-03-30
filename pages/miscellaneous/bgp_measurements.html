@@ -1,0 +1,339 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <!-- Review and updated March 2024
+        canonical: yes
+        navbar: yes
+        images: yes
+        disqus: yes
+        analytics: yes
+        accessible: yes
+        description: yes
+        title: yes
+        keywords: yes
+        -->
+        <title>Detecting the Facebook Outage with PyBGPStream</title>
+        <meta name="description" content="In this project I explain BGP and DNS, and show how to detect the Facebook
+         Outage using PyBGPStream.">
+        <meta name="author" content="Harry Turner">
+        <meta name="keywords" content="BGP, DNS, PyBGPStream, Facebook Outage, Autonomous System">
+        <link rel="icon" type="image/ico" href="../../images/favicon.ico">
+        <link href="../../styles/styles.css" type="text/css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+        <link rel=“canonical” href=“https://www.harrysprojects.com/pages/miscellaneous/bgp_measurements.html” />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="../../js/Navbar.js" type="text/javascript" defer></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-180754451-1');
+        </script>
+    </head>
+    <body>
+        <div class="page-container">
+
+            <nav-bar></nav-bar>
+
+            <div>
+                <h1>Detecting the Facebook Outage with PyBGPStream</h1>
+                <p><i>10th December 2021</i></p>
+                <h3>Introduction</h3>
+                <p>
+                    At 15:51 UTC on Monday 4th October 2021, major DNS resolvers around the world started
+                    returning (and caching) SERVFAIL for queries to <b>facebook.com</b> because they couldn't resolve
+                    Facebook's name servers. Since <b>facebook.com</b> couldn't be resolved, users everywhere lost access
+                    to the app, the website, whatsapp, and many other services. Facebook was effectively disconnected
+                    from the internet.
+                </p>
+                <p>
+                    The root cause of the outage was a misconfiguration, but to the public internet it manifested as
+                    a BGP issue. BGP is a relatively unknown, yet incredibly important internet protocol that connects
+                    everything together, and I thought it would make an interesting article to try and detect the
+                    Facebook outage, and demonstrate just how easy it is to do.
+                </p>
+                <p>
+                    In this post I introduce BGP and DNS, the two main internet technologies at the heart of
+                    the incident. I explain what happened during the Facebook outage, and finally demonstrate how to
+                    detect the outage with <a href="https://bgpstream.caida.org/docs/tutorials/pybgpstream">PyBGPStream</a>.
+                </p>
+                <h3>The Border Gateway Protocol (or BGP)</h3>
+                <p>
+                    Most people have heard of the Internet Protocol (IP), and understand
+                    that every public host that is connected to the internet has a unique IP address. They also understand
+                    that for two hosts to communicate over the network, they must send packets to each other identified
+                    with those addresses, much like how you might send a letter to a friend via the postal service.
+                    Whereas a postman delivering a letter is quite easy to get your head around, it's not so obvious how
+                    a packet bound for a particular host on the other side of the internet actually gets there.
+                </p>
+                <div class="image-container">
+                    <img src="../../images/miscellaneous/bgp_measurements/network_of_networks.png"/>
+                    <p><i>
+                        The internet is a network of networks.
+                    </i></p>
+                </div>
+                <p>
+                    The internet is a network of networks, and each of these networks is referred to as an
+                    Autonomous System. An Autonomous System (or AS) is a single administrative domain. That means that
+                    one organisation is in charge of the network, they can buy and install routers wherever they want,
+                    they can connect them up however they like, and store the
+                    routing tables of their choice. Within a single AS, the routers will coordinate with each other
+                    and learn how to send messages to other routers in the AS. In the example below, if one router is connected
+                    to host A, and another router is connected to host B, then host A only needs
+                    to send a packet to its local router which then sends the packet to B's router via some path it
+                    has previously learned, which finally forwards it on to B. The routers in this example are simply
+                    forwarding traffic by looking up the IP address in their forwarding tables and sending the packet
+                    out along the appropriate fibre. Those forwarding tables are learned by the routers talking to
+                    each other and telling each other about changes they're observing, everything happens within the
+                    network.
+                </p>
+                 <div class="image-container">
+                    <img src="../../images/miscellaneous/bgp_measurements/routers.png"/>
+                    <p><i>
+                        Hosts within an AS will forward traffic to their local router which has learned
+                        a path to the destination and knows how to forward the traffic.
+                    </i></p>
+                </div>
+                <p>
+                    The problem is that there is no single organisation that owns the entire internet. The
+                    internet is <b>not</b> one big network with lots of routers, it's made up of lots of smaller networks connected
+                    together, each owned by different organisations, and each of those organisations have different
+                    interests and don't necessarily want to cooperate with each other! In order for
+                    a host in AS 1 to be accessible by hosts in AS 2, AS 1 must somehow advertise to AS 2 that it owns
+                    this address, and AS 2 must be willing to accept and import that address and then disseminate it to
+                    its internal routers so they can update their forwarding tables. The way that Autonomous Systems
+                    coordinate in this way is with a protocol called the Border Gateway Protocol, or BGP.
+                </p>
+                <div class="image-container">
+                    <img src="../../images/miscellaneous/bgp_measurements/border_routers.png"/>
+                    <p><i>
+                        Hosts in two different Autonomous Systems will send traffic via the border routers.
+                    </i></p>
+                </div>
+                <p>
+                    BGP is a way for special routers on the edge of these AS's, called border routers, to talk to
+                    each other and share information about what addresses they can reach. In the previous example,
+                    host A which resides in AS 1 has a public IP address of 20.0.0.1, and AS 1 wants to share that
+                    with the world so host A can deliver all the wonderful content they're producing.
+                </p>
+                <p>
+                    A border router on AS 1 will send a BGP advertisement to the border router in AS 2 saying it has
+                    the address 20.0.0.1. The router in AS 2 first decides whether to accept the route, and if it does,
+                    it disseminates that information through it's network of routers. This means that if any of those
+                    routers want to forward traffic to 20.0.0.1, they now know that they have to first forward it to the
+                    border router, which then forwards it to AS 1's border router, which then forwards it to A's local
+                    router, which finally forwards it on to A.
+                </p>
+                <p>
+                    Autonomous Systems don't just share their own addresses, they share the ones they learn as well,
+                    so AS 2 will send an advertisement to AS 3 saying that it can reach 20.0.0.1, and the
+                    full path will be AS 3 to AS 2 to AS 1.
+                </p>
+                 <div class="image-container">
+                    <img src="../../images/miscellaneous/bgp_measurements/as_path.png"/>
+                    <p><i>
+                        Autonomous Systems will sometimes forward advertisements that they receive to other Autonomous Systems.
+                    </i></p>
+                </div>
+                <p>
+                    This type of BGP advertisement is called an announcement, another type is called a withdrawal
+                    which says, "I am no longer advertising this route", which removes the address from all the
+                    routing tables in that Autonomous System. By advertising and withdrawing routes, Autonomous Systems
+                    can control what addresses are public on the internet.
+                </p>
+                <p>
+                    Facebook has it's own AS (actually it has several), which is <b>AS 32934</b>. The reason
+                    Facebook have their own AS is for the same reason that Netflix, and Google have their own
+                    Autonomous Systems, administrative control over the network so that they can prioritise traffic
+                    for their own services. Facebook's AS is purely for Facebook traffic. When you go to <b>facebook.com</b>,
+                    the traffic is routed to the nearest Facebook network entry point (a small data center) which routes
+                    you onto the Facebook network, from there your traffic flows over a high capacity network backbone
+                    via a series of routers to Facebook's datacenters where the request is actually fulfilled.
+                </p>
+                <h3>Domain Name System</h3>
+                <p>
+                    The Domain Name System, or DNS, is like the internet's address book. It saves human beings from
+                    remembering addresses like 20.0.0.1, meaning you only need to remember <b>facebook.com</b> instead. DNS servers map
+                    hostnames to addresses, and will refer to a more authoritative DNS server if they haven't got an entry in their local database. Facebook has it's own DNS server
+                    specifically for anything at <b>facebook.com</b>. For example, consider the following two hostnames.
+                </p>
+                <ul>
+                    <li>
+                        <p><a href="https://ai.facebook.com/">ai.facebook.com</a></p>
+                    </li>
+                    <li>
+                        <p><a href="https://developers.facebook.com/">developers.facebook.com</a></p>
+                    </li>
+                </ul>
+                <p>
+                    When you visit <b>ai.facebook.com</b>, your local machine first contacts the local DNS server
+                    in your area. Assuming that <b>ai.facebook.com</b> isn't already cached, that DNS server recursively
+                    queries the root <b>.com</b> DNS server which looks it up. The <b>.com</b> DNS server doesn't have an entry
+                    for <b>ai.facebook.com</b> but it does have an entry for a <b>facebook.com</b> DNS server, so it refers the
+                    local DNS to Facebook's DNS instead. The local DNS server then queries Facebook's DNS server for
+                    <b>ai.facebook.com</b>, this time there's a match! It looks up the address and returns it to the
+                    local DNS server, which returns it to your local machine. Notice how you machine doesn't really
+                    know (or care) what's happening, it all happens automatically. DNS is said to be hierarchical, and
+                    recursive.
+                </p>
+                <div class="image-container">
+                    <img src="../../images/miscellaneous/bgp_measurements/dns.png"/>
+                    <p><i>
+                        DNS is how your local machine resolves hostnames.
+                    </i></p>
+                </div>
+                <p>
+                    Facebook's DNS server (actually it has several) contains IP addresses for everything at
+                    <b>facebook.com</b>, it's located within Facebook's Autonomous System and it has it's own IP address
+                    just like everything else. The <b>.com</b> DNS
+                    server knows that IP address, and the correct routes have been advertised from Facebook's AS
+                    using BGP. So when your laptop asks for something at <b>facebook.com</b>, all the routers know
+                    how to route your request to the right place.
+                </p>
+                <h3>The Facebook Outage</h3>
+                <p>
+                    Now that we've got the background, what actually happened? A misconfigration happened.
+                </p>
+                <p>
+                    Recall that Facebook have their own AS, which contains their backbone network, and their
+                    datacenters. When you run a network the size of facebook's, it needs occasional maintenance.
+                    Someone carried out a routine maintenance task on the backbone network and accidentally took
+                    down all the connections which disconnected the datacenters from the public internet. Oops.
+                </p>
+                <p>
+                    If you're wondering how Facebook could have messed up that badly, it's worth remembering that
+                    the internet is incredibly complex and examples like this go to show just how easy it is to knockout
+                    vast amounts of infrastructure. It's also more complex than I'm suggesting here, several problems
+                    happened to line up at the same time.
+                </p>
+                <p>
+                    Facebooks DNS servers have a safety mechanism built in that will withdraw BGP routes for
+                    the datacenters if the DNS server cannot talk to them. The data centers had just been taken offline,
+                    so the Facebook DNS servers immediately withdrew their routes from the internet by issuing BGP
+                    withdrawal advertisements.
+                </p>
+                <p>
+                    But recall that Facebook's DNS servers are also within the AS and also connected the same backbone.
+                    Since the entire backbone was taken offline, the DNS servers declared themselves unhealthy and withdrew their own
+                    advertisements as well, disconnecting themselves from the internet in the process!
+                </p>
+                <p>
+                    With Facebook's DNS servers unreachable, the <b>.com</b> DNS server, and all the local ones, were
+                    all trying to query hostnames like <b>ai.facebook.com</b> and even just <b>facebook.com</b> and
+                    all were receiving SERVFAIL in response.
+                </p>
+                <h1>Detection with PyBGPStream</h1>
+                <p>
+                    Now that we know what happened, let's see if we can detect it by monitoring BGP activity from
+                    Facebook's AS throughout the event.
+                </p>
+                <p>
+                    There are special "listener" servers throughout the world that simply listen to, and capture BGP
+                    advertisements, and store them all in a big database.
+                    <a href="https://bgpstream.caida.org/docs/tutorials/pybgpstream">PyBGPStream</a> is a library that
+                    lets you playback BGP advertisements from this database for whatever period you want, whenever you
+                    want, just as if you were receiving these advertisements in real time. If you don't specify any
+                    filters, it will play back all BGP traffic. Although it doesn't capture everything, it gives you
+                    a flavour of what's happening around the internet.
+                </p>
+                <p>
+                    <pre>
+    stream = pybgpstream.BGPStream(
+        from_time="2021-10-04 15:00:00", until_time="2021-10-04 22:00:00",
+        record_type="updates",
+        filter='peer 32934'
+    )
+                    </pre>
+                </p>
+                <p>
+                    The above code sets up a stream and records from 15:00 on the 4th October to 22:00 that same evening which
+                    encompasses the whole event. This is a post-event excercise, but it would be trivial to make this run
+                    in an online manner and make detections in real time.
+                </p>
+                <p>
+                    For the record type I specify 'updates' which filters out any administrative messages. Finally,
+                    I specify a 'peer 32934' filter. If you recall, that's Facebook's AS, so this tells the stream
+                    to only show advertisements that are coming directly from facebook, otherwise we'd be seeing
+                    all advertisements from all over the web!
+                </p>
+                <p>
+                    <pre>
+    w_events = []
+    a_events = []
+    OFFSET = 1633360000
+    for elem in stream:
+        if elem.type == 'W':
+            w_events.append(elem.time - OFFSET)
+        elif elem.type == 'A':
+            a_events.append(elem.time - OFFSET)
+        print(datetime.utcfromtimestamp(elem.time).strftime('%Y-%m-%d %H:%M:%S'))
+                    </pre>
+                </p>
+                <p>
+                    Now all we need to do is play the stream and capture events. There are lots of ways we could
+                    analyse this data, and the advertisements themselves have a lot of information within them that
+                    you could explore and aggregate in interesting ways. In this analysis I opt for something extremely
+                    simple, I simply count how often I see a withdrawal or announcement in periods of two minutes, from
+                    15:00 to 22:00. To do this I simply push the time that the advertisement occured into a list
+                    and then bucket them with a histogram. The offset is simply so that the histogram axes start at 0.
+                </p>
+                <p>
+                    Using the above method I produced the following histograms which show the number of withdrawals
+                    and advertisements issued in each two minute period from 15:00 to 22:00.
+                </p>
+                <div class="image-container">
+                    <img src="../../images/miscellaneous/bgp_measurements/withdrawals.png"/>
+                    <p><i>BGP Withdrawals</i></p>
+                </div>
+                <div class="image-container">
+                    <img src="../../images/miscellaneous/bgp_measurements/announcements.png"/>
+                    <p><i>BGP Announcements.</i></p>
+                </div>
+                <p>
+                    What you can see from the histrogram of withdrawals is a significant spike right at 15:42 which is
+                    when the trouble began. Then nothing for an hour or two whilst Facebook scramble their engineers,
+                    then a series of announcements and withdrawals as the systems attempt to come back
+                    online, and finally a big flurry of activity at about 22:00 as all systems return to normal.
+                </p>
+                <h3>Conclusion</h3>
+                <p>
+                    Incidents like this highlight how neither the internet, nor Facebook, are bullet-proof. Things do
+                    go wrong, and they can sometimes go wrong in interesting and illuminating ways. As individuals with
+                    no access to Facebook's networks (unless you're a Facebook engineer of course), we don't just have to
+                    sit on the sidelines and wait for the incident report to come out. What I hoped to show in this
+                    example is how easy it can be (sometimes, not always), to grab some open source tools
+                    and analyse such incidents ourselves.
+                </p>
+
+                <br />
+                <div id="disqus_thread"></div>
+                <script>
+                    var disqus_config = function () {
+                    this.page.url = "https://www.harrysprojects.com/pages/miscellaneous/bgp_measurements.html";
+                    this.page.identifier = "bgp_measurements";
+                    };
+
+                    (function() { // DON'T EDIT BELOW THIS LINE
+                    var d = document, s = d.createElement('script');
+                    s.src = 'https://harrysprojects-com.disqus.com/embed.js';
+                    s.setAttribute('data-timestamp', +new Date());
+                    (d.head || d.body).appendChild(s);
+                    })();
+                </script>
+                <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+                <br />
+                <br />
+            </div>
+
+        </div>
+    </body>
+    <footer>
+    </footer>
+</html>

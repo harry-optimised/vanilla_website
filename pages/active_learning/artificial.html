@@ -1,0 +1,334 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+         <!-- Review and updated March 2024
+        canonical: yes
+        navbar: yes
+        images: yes
+        disqus: yes
+        analytics: yes
+        accessible: yes
+        description: yes
+        title: yes
+        keywords: yes 
+        -->
+        <title>Generating Artificial Training Data</title>
+        <meta name="description" content="I write an algorithm to generate artificial training images, and then train an image classifier to classify real images with an accuracy of 98%.">
+        <meta name="author" content="Harry Turner">
+        <meta name="keywords" content="artificial, deep learning, machine learning, data">
+        <link rel="icon" type="image/ico" href="../../images/favicon.ico">
+        <link href="../../styles/styles.css" type="text/css" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+        <link rel=“canonical” href=“https://www.harrysprojects.com/projects/artificial.html” />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="../../js/Navbar.js" type="text/javascript" defer></script>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-180754451-1');
+        </script>
+    </head>
+    <body>
+        <div class="page-container">
+
+            <nav-bar></nav-bar>
+
+            <div>
+                <h1>Generating Artificial Training Data</h1>
+                <p><i>17th July 2018</i></p>
+                <h3>Background</h3>
+                <p>
+                    Training deep neural networks requires a lot of data. To give you an idea of just how big some of 
+                    the major datasets really are, ImageNet has over 14 million images, MNIST has 70,000 images, and 
+                    the IMDB Wiki dataset has 500,000 images. Often times, the biggest challenge in applying machine 
+                    learning to a problem is not picking the right algorithm, or even getting it to train properly; 
+                    it’s gathering the dataset in the first place.
+                </p>
+                <p>
+                    What I wanted to do in this project was to turn that idea on its head, and see if I could write 
+                    an algorithm that would generate training examples for me. I could then generate a training set 
+                    of any size that I liked, and use that to train an image classifier as accurately as possible.
+                </p>
+                <p>
+                    Before I continue however, there are some very important, yet subtle points buried within this 
+                    challenge, and I want to make sure that I address those first. Also, this project was about 
+                    generating images for an image classifier, and I’ll therefore keep the discussion to image 
+                    classification, but note that it applies to all problems.
+                </p>
+                <h3>A Little Bit of Theory</h3>
+                <p>
+                    In image classification tasks, the power of using learning algorithms is that a model can learn 
+                    to detect patterns and features in an image that help it determine which class the image belongs 
+                    to. Say that you trained a face detector on a dataset of real human faces, if you looked inside 
+                    the algorithm after training, you might find that it was looking for particular shapes like noses, 
+                    jawlines, or eyes, that it used to inform it’s decision about which class the image belonged to.
+                </p>
+                <p>
+                    If however, you wanted to generate an artificial training set to train your face detector, 
+                    you’d have to make sure that the resulting training images have those particular patterns and 
+                    features in it that the classifier needs. You couldn’t generate stick-men faces for example, 
+                    because they lack the necessary detail in the noses, jawlines and eyes that the classifier 
+                    requires to correctly classify the test images. Another way of saying the same thing is that 
+                    both your training and testing images need to be drawn from the same distribution, and therefore 
+                    are representative of each other.
+                </p>
+                <p>
+                    If I’m arbitrarily generating training data, then by definition, my machine learning algorithm is 
+                    very unlikely to discover a pattern that I don’t already know about, because I have already 
+                    programmed the pattern into my image generator as a rule! This therefore defeats the whole point 
+                    of using machine learning in the first place. So what’s the point?
+                </p>
+                <p>
+                    The point is this. If you don’t have much data, and data collection is expensive, then you can’t 
+                    use machine learning no matter how much you want to. An alternative is to try and write an 
+                    algorithm that looks for the patterns yourself. Going back to the face detector, you could write 
+                    a set of rules looking for shapes that look like noses, concentric circles that look like eyes 
+                    and so on, but you’d have to try and account for every variation of face, at every angle, for 
+                    every expression. Naturally, this would get incredibly tedious, and it’s why we use machine 
+                    learning in the first place.
+                </p>
+                <p>
+                    It turns out, that a slightly easier method is not to write rules to detect faces, but to write 
+                    rules to generate faces, and then use that algorithm to generate a large training dataset, and 
+                    train a machine learning classifier on that dataset. The patterns that the classifier learns are 
+                    the same rules that your generator uses to generate images. Same problem, but tackled in slightly 
+                    different way.
+                </p>
+                <h3>Disclaimer</h3>
+                <p>
+                    Please understand that this isn’t research by any means, I haven’t been rigorous, I haven’t 
+                    conducted carefully controlled experiments, I’ve just tried something out that I thought 
+                    would be interesting. The results are purely subjective, and can be summarised as follows.
+                </p>
+                <p>
+                    <b><i>If I want to build a face detector, but don't have any training data, I have to write an 
+                        algorithm to do it myself. I found it easier and got better results by writing rules to 
+                        generate faces and then training a classifier on those artificial faces, instead of by 
+                        writing the rules to detect the faces themselves.</i></b>
+                </p>
+                <p>
+                    So, with that preamble out of the way, let’s get to it.
+                </p>
+                <h3>The Problem</h3>
+                <p>
+                    After spending the whole introduction talking about detecting faces, I’m going to tackle a
+                    completely different problem, the reason being that face detection is quite tricky, and I wanted
+                    a simpler toy problem to test my ideas on.
+                </p>
+                <p>
+                    The problem I chose to tackle is ship identification, specifically, tankers. The reason I picked
+                    this dataset was because it was simple enough that I would be able to write rules for detecting
+                    ships if I had to, but it also included slight complications that made the problem challenging,
+                    like clouds, land, and waves. Examples of the types of images that I attempted to classify are
+                    shown below. The dataset I used has 375 images with ships in them, and 375 images without.
+                </p>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_1.png"/>
+                    <p><i>A selection of example images from the dataset.</i></p>
+                </div>
+                <h3>The Baseline</h3>
+                <p>
+                    The first thing I did was to establish a baseline for a model trained on real training data.
+                    The reason for this is because when I eventually generate my own artificial training data, I
+                    want to see if I can train models with comparable accuracy to those trained with the real data.
+                </p>
+                <p>
+                    I took the 375 images for each class, and put 300 of each into a training set, and the other 75
+                    each into a test set. I then trained a model on the 600 images in the training set, and tested
+                    it on the 150 images in the test set. There’s nothing special about the classifier I used, if
+                    you’re interested in the details, please see the code.
+                </p>
+                <p>
+                    If you look at the confusion matrix below, you can see that the model actually classifies
+                    everything perfectly. Confusion matrices are standard reporting tools for classification
+                    algorithms, and if you’re not familiar with them, I encourage you to look them up. Specifically,
+                    the confusion matrix below is saying that for the 75 images that were actually “none“, my
+                    classifier predicted them to be “none”, and likewise for “ships”.
+                </p>
+                <p>
+                    Arguably my testing set wasn’t big enough and there isn’t enough information to confirm whether
+                    it’s a good classifier or not, but hopefully you get the point, it was trained on a real training
+                    set, and it classified the 150 images in the test set with 100% accuracy. That’s going to be
+                    tough to beat.
+                </p>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_2.png"/>
+                    <p><i>Confusion matrix for a classifier trained on real training data.</i></p>
+                </div>
+                <h3>Testing the Setup</h3>
+                <p>
+                    Before I launched into the generation of artificial images, I checked that the pipeline was setup
+                    and working properly. By pipeline, I mean the following:
+                </p>
+                <p>
+                    <ul>
+                        <li><p>Generate a training set of arbitrary size using the artificial generation function.</p></li>
+                        <li><p>Save all of those training images into the training folders.</p></li>
+                        <li><p>Create a model.</p></li>
+                        <li><p>Train the model on the new artificial images.</p></li>
+                        <li><p>Test the model on the real images. (I use all 650 images from the original dataset).</p></li>
+                        <li><p>Plot the results in a confusion matrix.</p></li>
+                    </ul>
+                </p>
+                <p>
+                    I wanted to automate this entire process so that I could focus all of my efforts on writing a good generation function, and then I could test it by simply running the pipeline from start to finish. The details of the pipeline aren’t important, it’s all in the code if you’re interested.
+                </p>
+                <p>
+                    To test the pipeline, I wrote a very quick generation function that simply generated black images. Running the pipeline gave me the confusion matrix below. The confusion matrix is telling me that an image classifier that has been trained on black images basically classifies everything it sees as “not containing a ship“. Fair enough.
+                </p>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_3.png"/>
+                    <p><i>Confusion matrix for a classifier trained on black images.</i></p>
+                </div>
+                <p>
+                    From then on, whenever I wanted to test my generation function, I simply ran the pipeline and looked at the confusion matrix, this gave me a standard metric for comparing generation functions as I improved them.
+                </p>
+        
+                <h3>A First Pass</h3>
+                <p>
+                    My generation algorithm needed to generate two kinds of image, one with a ship in it, labelled “ship”, and one without, labelled “none”. Look again at what the real images look like, because my generator is going to try and replicate them.
+                </p>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_4.png"/>
+                    <p><i>A selection of example images from the dataset.</i></p>
+                </div>
+                <p>
+                    The main points that I took away from analysing the real training set images were the following:
+                </p>
+                <p>
+                    <ul>
+                        <li><p>The sea is generally blue, or green, or grey, more usually a various mixture of all three.</p></li>
+                        <li><p>There are clouds in some of the images.</p></li>
+                        <li><p>Ships fill the whole image, are found in the middle of the image, and can be at any angle.</li>
+                        <li><p>Some of the images have wave textures, some are smooth.</p></li>
+                        <li><p>Ships have detail in them such as containers, bridges, etc.</p></li>
+                        <li><p>Ships are usually of a low contrast colour, normally red, blue, grey, or green.</p></li>
+                    </ul>
+        
+                </p>
+                <p>
+                    I then wrote a generation algorithm based on those criteria. If you want to see how the generation algorithm works, it’s all in the code. The easiest way to understand it however is to visualise the images that come out of it! Below, I’ve shown two sets of images, one for images of classification “none”, and one for images of classification “ship“.
+                </p>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_5.png"/>
+                    <p><i>Set of basic artificial training images, of classification “none”.</i></p>
+                </div>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_6.png"/>
+                    <p><i>Set of basic artificial training images, of classification “ship”.</i></p>
+                </div>
+                <p>
+                    They’re not very good ships, I’ll admit. But I was curious to see whether the simple presence of a block of colour, in the middle of a uniformly coloured sea, would be enough for the model to begin to detect ships. Sure enough, if you look at the confusion matrix below, you can see that it is. In fact, it’s so effective, that for every single image that is a true “ship“, the model predicts it to be so. Unfortunately, it now appears to be biased in favour of ships, since it’s also miss-classifying 142 images as ships, when they’re not. Still, the results are promising.
+                </p>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_7.png"/>
+                    <p><i>Confusion matrix for a classifier trained on basic artificial images.</i></p>
+                </div>
+                <h3>A Second Pass</h3>
+                <p>
+                    Time to improve it! I added new functionality to the generation algorithm, so that it adds clouds, has more representative colours, and creates more realistic looking ships. As usual, the easiest way to understand what it is doing is to visualise the output, see below!
+                </p>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_8.png"/>
+                    <p><i>Set of improved artificial training images, of classification “none”, including better clouds, and more representative colours.</i></p>
+                </div>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_9.png"/>
+                    <p><i>Set of improved artificial training images, of classification “ship”, including more representative colours, better clouds, and better ship shapes.</i></p>
+                </div>
+                <p>
+                    As usual, I ran the pipeline and looked at the confusion matrix, shown below. Simply adding those new features has drastically improved the performance of the classifier, at the expense of now miss-classifying a few ships. It’s encouraging that it’s doing such a good job, considering that it’s never seen a true image during it’s training.
+                </p>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_10.png"/>
+                    <p><i>Confusion matrix for a classifier trained on improved artificial images.</i></p>
+                </div>
+                <h3>A Third and Final Pass</h3>
+                <p>
+                    The classifier is doing a great job, but it’s not perfect. At this point, it is constructive to look at which images are tripping the classifier up. I can then use that knowledge to refine the generation algorithm.
+                </p>
+                <p>
+                    Firstly, as a sanity check, I’ve plotted images that the classifier got correct, and was also very confident in it’s prediction. Note that the numbers above the images represent the probability of an image being of class “ship”.
+                </p>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_11.png"/>
+                    <p><i>Images of “none” that the classifier got correct, and was highly confident.</i></p>
+                </div>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_12.png"/>
+                    <p><i>Images of “ship” that the classifier got correct, and was highly confident.</i></p>
+                </div>
+                <p>
+                    That’s exactly what I expected which is good. It’s much more informative however to plot images that the classifier got wrong, but was also very confident in it’s predictions. In other words, which images did the classifier get the most wrong.
+                </p>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_13.png"/>
+                    <p><i>Images of “none” that the classifier got wrong, and was highly confident.</i></p>
+                </div>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_14.png"/>
+                    <p><i>Images of “ship” that the classifier got wrong, and was highly confident.</i></p>
+                </div>
+                <p>
+                    From analysing the images above, I made the following observations.
+                </p>
+                <p>
+                    <ul>
+                        <li><p>The classifier struggles to properly classify images with lots of cloud.</p></li>
+                        <li><p>The classifier struggles to properly classify images with strong wave texture.</p></li>
+                        <li><p>The classifier struggles to classify ships with shadows or other unusual super structure.</p></li>
+                        <li><p>Some ships are longer and narrower than I’m currently generating.</p></li>
+                        <li><p>Even though the classifier predicted some of the ships wrongly, if you look at the probabilities, it’s not drastically wrong, so it’s not too far off.</p></li>
+                    </ul>
+                </p>
+                <p>
+                    From these points, I refined my generation algorithm to generate more cloud cover, and a wider variety of ship shapes. I also generated 10,000 images, rather than 1000 images, which is what I’d been generating so far. As usual, a sample of the output from the generation algorithm is shown below.
+                </p>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_15.png"/>
+                    <p><i>Set of best artificial training images, of classification “none”, including better clouds.</i></p>
+                </div>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_16.png"/>
+                    <p><i>Set of best artificial training images, of classification “ship”, including better clouds, and better ship shapes.</i></p>
+                </div>
+                <p>
+                    As usual, I ran the pipeline and got the confusion matrix below. The classifier now only miss-classifies 14 images out of 650, an accuracy of almost 98%. Not bad considering it’s never seen a real image!
+                </p>
+                <div class="image-container">
+                    <img src="../images/projects/artificial/gad_17.png"/>
+                    <p><i>Confusion matrix for a classifier trained on the best artificial images.</i></p>
+                </div>
+                <br />
+                <div id="disqus_thread"></div>
+                <script>
+                    var disqus_config = function () {
+                    this.page.url = "https://www.harrysprojects.com/projects/artificial.html";
+                    this.page.identifier = "artificial";
+                    };
+
+                    (function() { // DON'T EDIT BELOW THIS LINE
+                    var d = document, s = d.createElement('script');
+                    s.src = 'https://harrysprojects-com.disqus.com/embed.js';
+                    s.setAttribute('data-timestamp', +new Date());
+                    (d.head || d.body).appendChild(s);
+                    })();
+                </script>
+                <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+                <br />
+                <br />
+            </div>
+
+        </div>
+    </body>
+    <footer>
+    </footer>
+</html>

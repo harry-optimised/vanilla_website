@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Review and updated March 2024
+        canonical: yes
+        navbar: yes
+        images: yes
+        disqus: no
+        analytics: yes
+        accessible: yes
+        description: yes
+        title: yes
+        keywords: yes    
+        -->
+    <title>Object Detection with Deep Learning Series</title>
+    <meta name="description" content="Machine Learning articles." />
+    <meta name="author" content="Harry Turner" />
+    <meta
+      name="keywords"
+      content="machine learning, deep learning, object detection"
+    />
+    <link rel="icon" type="image/ico" href="/images/favicon.ico" />
+    <link href="/styles/styles.css" type="text/css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel=“canonical”
+    href=“https://www.harrysprojects.com/pages/object_detection.html” />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="/js/Navbar.js" type="text/javascript" defer></script>
+    <script src="/js/ArticleCard.js" type="text/javascript" defer></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "UA-180754451-1");
+    </script>
+  </head>
+
+  <body>
+    <div class="page-container">
+      <nav-bar></nav-bar>
+
+      <div style="width: 100%">
+        <h1>Object Detection with Deep Learning Series</h1>
+
+        <p>
+          This series dives deep into the technical detail behind the early
+          objection detection architectures using Deep Learning. I cover the
+          canonical two-stage object detectors and cover the transition to
+          single-stage detectors which paved the way for the current modern
+          architectures like YOLOv8 and more.
+        </p>
+        <br />
+        <ul>
+          <li>
+            <article-card
+              title="Part 1: R-CNN"
+              started="September 2020"
+              description="We'll start our journey into object detection with deep learning by exploring how the object
+                                    detection problem can be framed as region proposal and classification. R-CNN (Regions with CNN Features)
+                                    was the first architecture to use deep learning for some of the system components.
+                                    This article examines the architecture in detail, and highlights the various tricks that made it effective."
+              image-src="/images/object_detection/rcnn/regions.jpg"
+              url="/pages/object_detection/rcnn.html"
+            />
+          </li>
+          <br />
+          <hr />
+          <li>
+            <article-card
+              title="Part 2: Spatial Pyramid Pooling"
+              started="September 2020"
+              description="This article explores the SPP-Net model, the architecture that introduced the spatial pyramid pooling layer.
+                                    This is a nice model to study because it tackles one of the key problems with R-CNN, which is that it is slow.
+                                    It also paves the way towards Fast R-CNN."
+              image-src="/images/object_detection/spp/spp-feature-maps.png"
+              url="/pages/object_detection/spp.html"
+            />
+          </li>
+          <br />
+          <hr />
+          <li>
+            <article-card
+              title="Part 3: Fast R-CNN"
+              started="September 2020"
+              description="Fast R-CNN addressed the slowness of R-CNN by moving everything into one network.
+                                    They use a variation of the spatial pyramid pooling layer (although they call it ROI pooling) to allow the network to sample features at different scales. Finally
+                                    we discuss how bounding boxes are parameterised within a network, as it's a good example of how to design
+                                    your network to match the problem."
+              image-src="/images/object_detection/fastrcnn/fastrcnn_architecture_paper.png"
+              url="/pages/object_detection/fastrcnn.html"
+            />
+          </li>
+          <br />
+          <hr />
+          <li>
+            <article-card
+              title="Part 4: Faster R-CNN"
+              started="October 2020"
+              description="Faster R-CNN innovated in the network architecture. They recognised that region proposal was
+                                    also object detection, so they put an object detector in an object detector. This article spends
+                                    some time exploring how to think of the architecture as building blocks, which is a useful way
+                                    to think about object detectors in general. I also introduce anchors as a way of parameterising
+                                    a set of initial bounding boxes."
+              image-src="/images/object_detection/fasterrcnn/anchors.png"
+              url="/pages/object_detection/fasterrcnn.html"
+            />
+          </li>
+          <br />
+          <hr />
+          <li>
+            <article-card
+              title="Part 5: Mask R-CNN"
+              started="October 2020"
+              description="As a roundup of two-stage object detectors, we explore Mask R-CNN, an envolution of
+                                    Faster R-CNN that adds a mask branch to the network. This is a good example of how to add additional
+                                    branches to a network to give it more capabilities. It also shows how to use the same feature maps for
+                                    multiple tasks. I'll spend most of the article discussing the ROI Align layer which is essential for
+                                    predicting accurate masks."
+              image-src="/images/object_detection/maskrcnn/mask_rcnn_branch.png"
+              url="/pages/object_detection/maskrcnn.html"
+            />
+          </li>
+          <br />
+          <hr />
+          <li>
+            <article-card
+              title="Part 6: Deep Multi Box"
+              started="January 2021"
+              description="This is the first article in the single stage detector mini series. It's a good one to start with because it
+                                    introduces the concept of framing object detection as regression of box coordinates. Multibox is an early
+                                    incarnation of YOLO and SSD, it uses bipartite matching to assign ground truth boxes to anchor boxes."
+              image-src="/images/object_detection/multibox/architecture.png"
+              url="/pages/object_detection/multibox.html"
+            />
+          </li>
+          <br />
+          <hr />
+          <li>
+            <article-card
+              title="Part 7: YOLO v1"
+              started="January 2021"
+              description="In this article we look at the YOLO v1 model. This is a good example of cleverly choosing what the
+                                    network outputs should represent, and then designing a loss function to achieve that goal. YOLOv1 is
+                                    actually quite simple once you know how it works. I'll spend a lot of time on the loss function in this article."
+              image-src="/images/object_detection/yolov1/architecture.png"
+              url="/pages/object_detection/yolov1.html"
+            />
+          </li>
+          <br />
+          <hr />
+          <li>
+            <article-card
+              title="Part 8: Single Shot Detector"
+              started="January 2021"
+              description="This article takes a brief digression to look at the Single Shot Detector (SSD). I explore this paper
+                                    because it ties the concepts of one-stage and two-stage architectures quite nicely."
+              image-src="/images/object_detection/fasterrcnn/anchors_paper.png"
+              url="/pages/object_detection/ssd.html"
+            />
+          </li>
+          <br />
+          <hr />
+          <li>
+            <article-card
+              title="Part 9: YOLO Version 2 and 3"
+              started="January 2021"
+              description="We wrap up this series for the time being with a bag of tricks that were applied to the YOLO
+                                    model to produce YOLOv2 and YOLOv3. These are general orthogonal improvements that can
+                                    be applied to all object detectors. It's a good example of lots of little tricks that stack up."
+              image-src="/images/object_detection/yolov2/fine-grained.png"
+              url="/pages/object_detection/yolov23.html"
+            />
+          </li>
+        </ul>
+
+        <br />
+        <br />
+      </div>
+    </div>
+  </body>
+  <footer></footer>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <!-- Review and updated March 2024
+        canonical: no
+        navbar: no
+        images: no
+        disqus: no
+        analytics: no
+        accessible: no
+        description: no
+        title: no
+        keywords: no 
+        -->
+    <!-- Review and updated March 2024
+        canonical: yes
+        navbar: yes
+        images: yes
+        disqus: yes
+        analytics: yes
+        accessible: yes
+        description: yes
+        title: yes
+        keywords: nyes
+        -->
+    <title>Diversity Sampling Techniques</title>
+    <meta
+      name="description"
+      content="Diversity Sampling Techniques for active learning."
+    />
+    <meta name="author" content="Harry Turner" />
+    <meta
+      name="keywords"
+      content="active learning diversity sampling filtering kmeans++"
+    />
+    <link rel="icon" type="image/ico" href="../../images/favicon.ico" />
+    <link href="../../styles/styles.css" type="text/css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel=“canonical”
+    href=“https://www.harrysprojects.com/pages/active_learning/diversitysampling.html”
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+    <script src="../../js/Navbar.js" type="text/javascript" defer></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-180754451-1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "UA-180754451-1");
+    </script>
+  </head>
+  <body>
+    <div class="page-container">
+      <nav-bar></nav-bar>
+
+      <div>
+        <h1>Diversity Sampling Techniques</h1>
+        <p><i>24th April 2021</i></p>
+        <h3>Introduction</h3>
+        <p>
+          In this short post I cover several Diversity Sampling techniques that
+          I use in practice for finding diverse images to label as part of an
+          active learning strategy.
+        </p>
+
+        <h3>Techniques</h3>
+        <p>
+          Our goal here is to select N images from the list in such a way that
+          we maximise diversity whilst preserving the most uncertain images.
+          Here are a few ways to do that.
+        </p>
+        <p>
+          <b>Filtering.</b> We immediately discard the bottom X% of the images
+          and the do some sort of diversity sampling from the remaining images.
+          As a concrete example, image we have a pool of 1000 images but we only
+          want to label 50. We first discard 80% of the images to leave us with
+          the 200 most uncertain. Now, no matter what diversity sampling method
+          we use, we know that we'll still be selecting the most uncertain
+          images. There are plenty of differen diversity sampling methods we
+          could then use, I'll discuss a common one here which is to use a
+          clustering method, like K-Means. We run K-Means with K=50, that will
+          attempt to cluster the remaining 200 images into 50 clusters that
+          roughly capture the distribution of the space. Then we simply take the
+          50 centroids from each cluster and use those as our final set of
+          images to label.
+        </p>
+        <p>
+          <b>K Means ++.</b> This is a diversity sampling technique that uses
+          the uncertainty score within it. Therefore you don't need to think
+          about how you're going to combine the two, it does it for you. First
+          we randomly select an image from the pool X and add it to a set C
+          which is our set of centroids. For each image in X we compute the
+          distance to the <i>nearest</i> centroid and store that information.
+          Now we select an image from X and add it to C by randomly choosing it
+          according to the probability distribution proportional to it's
+          distance and uncertainty score. The intuition is that the image that
+          has the maximum distance from a centroid <i>and</i> the highest
+          uncertainty is the one most likely to be sampled to be the next
+          centroid. We repeat until we've got N centroids and then simply use
+          that as the selected set for labelling.
+        </p>
+        <p>
+          Both of these strategies make use of computing distances between
+          images, and it's worth pointing out that the way we would do this for
+          images is to extract an image embedding using a deep encoder and then
+          doing something like euclidean or cosine distance in embedding space.
+          This is beyond what I wanted to talk about in this article but
+          fundamentally there's almost always some sensible notion of distance
+          you can use for these techniques regardless of the modality of your
+          data.
+        </p>
+        <br />
+        <div id="disqus_thread"></div>
+        <script>
+          var disqus_config = function () {
+            this.page.url =
+              "https://www.harrysprojects.com/pages/active_learning/diversitysampling.html";
+            this.page.identifier = "diversitysampling";
+          };
+
+          (function () {
+            // DON'T EDIT BELOW THIS LINE
+            var d = document,
+              s = d.createElement("script");
+            s.src = "https://harrysprojects-com.disqus.com/embed.js";
+            s.setAttribute("data-timestamp", +new Date());
+            (d.head || d.body).appendChild(s);
+          })();
+        </script>
+        <noscript
+          >Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript"
+            >comments powered by Disqus.</a
+          ></noscript
+        >
+        <br />
+      </div>
+    </div>
+  </body>
+  <footer></footer>
+</html>

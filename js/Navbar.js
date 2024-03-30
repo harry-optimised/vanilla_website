@@ -13,10 +13,10 @@ class Navbar extends HTMLElement {
        
           <div class="nav-bar-row">
             <div class="nav-item"><h4><a href="/index.html">Home</a></h4></div>
-            <div class="nav-item"><h4><a href="/llm_agents.html">LLM Agents</a></h4></div>
-            <div class="nav-item"><h4><a href="/system_design.html">System Design</a></h4></div>
-            <div class="nav-item"><h4><a href="/object_detection.html">Object Detection</a></h4></div>
-            <div class="nav-item"><h4><a href="/active_learning.html">Active Learning</a></h4></div>
+            <div class="nav-item"><h4><a href="/pages/llm_agents.html">LLM Agents</a></h4></div>
+            <div class="nav-item"><h4><a href="/pages/system_design.html">System Design</a></h4></div>
+            <div class="nav-item"><h4><a href="/pages/object_detection.html">Object Detection</a></h4></div>
+            <div class="nav-item"><h4><a href="/pages/active_learning.html">Active Learning</a></h4></div>
             <div class="nav-item"><h4><a href="https://meal-planner.harrysprojects.com">Meal Planner</a></h4></div>
           </div>
         </div>
@@ -27,10 +27,10 @@ class Navbar extends HTMLElement {
       <div class="nav-menu">
         <h4><a href="/index.html">Home</a></h4>
         <hr>
-        <h4><a href="/llm_agents.html">LLM Agents</a></h4>
-        <h4><a href="/system_design.html">System Design</a></h4>
-        <h4><a href="/object_detection.html">Object Detection</a></h4>
-        <h4><a href="/active_learning.html">Active Learning</a></h4>
+        <h4><a href="/pages/llm_agents.html">LLM Agents</a></h4>
+        <h4><a href="/pages/system_design.html">System Design</a></h4>
+        <h4><a href="/pages/object_detection.html">Object Detection</a></h4>
+        <h4><a href="/pages/active_learning.html">Active Learning</a></h4>
         <h4><a href="https://meal-planner.harrysprojects.com">Meal Planner</a></h4>
         <hr>
         <br>
