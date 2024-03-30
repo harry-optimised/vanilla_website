@@ -2,6 +2,7 @@ import requests
 from datetime import datetime
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
+from email.utils import parsedate_to_datetime
 import logging
 
 logger = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ def crawl_website(url, domain=None):
             logger.warning(f'404 warning for URL: {url}')
             return
 
-        last_modified = response.headers.get('Last-Modified', datetime.now().strftime('%Y-%m-%d'))
+        last_modified = datetime.now().strftime('%Y-%m-%dT%H:%M:%S%z')
         SITEMAP_URLS.append((url, last_modified))
 
         soup = BeautifulSoup(response.text, 'html.parser')
