@@ -9,27 +9,23 @@ class Navbar extends HTMLElement {
       <div class="nav-bar">
         <div class="hamburger"><h6>&#9776;</h6></div>
         <div class="nav-bar-left">
-          <div class="nav-item"><h1 style="font-weight: 1000; font-size: 200%"><a href="/index.html">Harrys Projects</a></h1></div>
+          <div class="nav-item"><h1 style="font-weight: 1000; font-size: 200%"><a href="/index.html">Harry Turner</a></h1></div>
        
           <div class="nav-bar-row">
-            <div class="nav-item"><h4><a href="/index.html">Home</a></h4></div>
-            <div class="nav-item"><h4><a href="https://continuum-journal.com">Continuum</a></h4></div>
-            <div class="nav-item"><h4><a href="https://meal-planner.harrysprojects.com">Meal Planner</a></h4></div>
+            <div class="nav-item"><h4><a href="/index.html#professional">Professional Work</a></h4></div>
+            <div class="nav-item"><h4><a href="/index.html#writing">Writing</a></h4></div>
+            <div class="nav-item"><h4><a href="/index.html#projects">Fun</a></h4></div>
           </div>
-        </div>
-        <div class="nav-bar-right">
-          <a href="https://www.linkedin.com/in/harry-j-turner/"><img style="width: 24px; margin-right: 16px" src="https://img.icons8.com/ios-filled/50/2F344C/linkedin.png" alt="LinkedIn logo"/></a>     
         </div>
       </div>
       <div class="nav-menu">
         <h4><a href="/index.html">Home</a></h4>
         <hr>
-        <h4><a href="https://continuum-journal.com">Continuum</a></h4>
-        <h4><a href="https://meal-planner.harrysprojects.com">Meal Planner</a></h4>
+        <h4><a href="/index.html#professional">Professional Work</a></h4>
+        <h4><a href="/index.html#writing">Writing</a></h4>
+        <h4><a href="/index.html#projects">Fun</a></h4>
         <hr>
         <br>
-        <a href="https://www.linkedin.com/in/harry-j-turner/"><img style="width: 24px; margin-right: 16px" src="https://img.icons8.com/ios-filled/50/ffffff/linkedin.png" alt="LinkedIn logo"/></a>  
-
       </div>
     `;
     this.shadowRoot

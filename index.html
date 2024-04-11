@@ -1,159 +1,287 @@
-<!doctype html>
+<!DOCTYPE html>
 
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Harry Turner</title>
+    <meta name="description" content="Harry's Personal Website." />
+    <meta name="author" content="Harry Turner" />
+    <meta
+      name="keywords"
+      content="harry, projects, harrys projects, harry's projects, website, blog, henry,
+        system design, ml, machine learning"
+    />
 
-    <head>
-        <meta charset="utf-8">
-        <title>Harrys Projects</title>
-        <meta name="description" content="Harry's Personal Website.">
-        <meta name="author" content="Harry Turner">
-        <meta name="keywords" content="harry, projects, harrys projects, harry's projects, website, blog, henry,
-        system design, ml, machine learning">
+    <link rel="icon" type="image/ico" href="images/favicon.ico" />
+    <link href="styles/styles.css" type="text/css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel=“canonical” href=“https://www.harrysprojects.com/” />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="js/Navbar.js" type="text/javascript" defer></script>
+    <script src="js/ArticleCard.js" type="text/javascript" defer></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-X5NEKXRJE4"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
 
-        <link rel="icon" type="image/ico" href="images/favicon.ico">
-        <link href="styles/styles.css" type="text/css" rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
-            rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
-            rel="stylesheet">
-        <link rel=“canonical” href=“https://www.harrysprojects.com/” />
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script src="js/Navbar.js" type="text/javascript" defer></script>
-        <script src="js/ArticleCard.js" type="text/javascript" defer></script>
-        <!-- Global site tag (gtag.js) - Google Analytics -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-X5NEKXRJE4"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag() { dataLayer.push(arguments); }
-            gtag('js', new Date());
+      gtag("config", "G-X5NEKXRJE4");
+    </script>
+  </head>
 
-            gtag('config', 'G-X5NEKXRJE4');
-        </script>
-    </head>
+  <body>
+    <div class="page-container">
+      <nav-bar></nav-bar>
 
-    <body>
-        <div class="page-container">
+      <div id="about">
+        <br />
+        <h3>Hey, I'm Harry.</h3>
+        <p>
+          I'm a backend engineer with over five years experience building
+          data-intensive applications in venture-backed startups. I've taken ML
+          based products from concept to production. I've also built several
+          frontend user interfaces. On this site you can find a collection of my
+          more interesting projects. Please don't hesitate to get in touch if
+          you want to chat.
+        </p>
 
-            <nav-bar></nav-bar>
-
-            <div>
-                <h1>Latest</h1>
-                <ul>
-                    <li>
-                        <article-card title="Building LLM Agents Series " started="Started March 2024"
-                            description="A series of articles on building embodied LLM agents in Minecraft. Rather than a how-to this is more of a documented journey of discovery where I try things out to see what works. We'll build up to the Voyager paper."
-                            image-src="/images/headers/llm_agents.png" url="pages/llm_agents.html" />
-                    </li>
-                    <br />
-                    <hr>
-                    <li>
-                        <article-card title="Object Detection with Deep Learning Series (9 articles)"
-                            started="September 2020 to January 2021"
-                            description="My early work at Rovco involved building object detection systems for underwater objects using the popular architectures of the time (Mask R-CNN, YOLOv3, SSD, etc). This series of articles explains the technical detail behind these architectures, and how they evolved over time."
-                            image-src="/images/headers/object_detection_with_deep_learning_teaser.png"
-                            url="pages/object_detection.html" />
-
-                    </li>
-                    <br />
-                    <hr>
-                    <li>
-                        <article-card title="Active Learning Series (4 articles)" started="2018 to 2021"
-                            description="Capturing and labelling high quality underwater datasets for computer vision was hard, so we explored active learning as a way to minimise the amount of data we needed to label. This series of articles explains the different techniques we used."
-                            image-src="/images/headers/artificial_thumbnail.png" url="pages/active_learning.html" />
-
-                    </li>
-
-                </ul>
-                <br />
-                <br />
-            </div>
-            <div>
-                <br />
-                <h1>Miscellaneous Articles</h1>
-                </br>
-                <ul>
-                    <!-- <li>
-                        <article-card title="Surviving OMSCS Graduate Algorithms" started="March 2024"
-                            description="I just finished CS6515, the last course I needed to complete my OMSCS degree. This particular course is infamous for its difficulty, so I want to share a few thoughts on what it was like and how to get through it."
-                            image-src="/images/headers/graduate_algorithms.png" url="graduate_algorithms.html" />
-                    </li>
-                    <br />
-                    <hr> -->
-                    <li>
-                        <article-card title="Home Kubernetes cluster" started="March 2023"
-                            description="A short writeup on setting up a home Kubernetes cluster on cheap hardware. "
-                            image-src="/images/headers/kubernetesmarch2023.png" url="pages/miscellaneous/kubernetesmarch2023.html" />
-
-                    </li>
-                    <br />
-                    <hr>
-                    <li>
-                        <article-card title="Build something you can't live without" started="December 2022"
-                            description="A short thought experiment on a simple principle for building things that people will use."
-                            image-src="/images/miscellaneous/buildsomething/space_of_problems.png" url="pages/miscellaneous/buildsomething.html" />
-
-                    </li>
-                    <br />
-                    <hr>
-                    <li>
-                        <article-card title="Python wordle solver" started="January 2022"
-                            description="I 'got into' Wordle a couple of weeks ago. Some friends and I have a competition going on Whatsapp where we submit our daily scores. I thought the task of building a Wordle Solver would be a fun and worthwhile challenge."
-                            image-src="/images/miscellaneous/wordle/thumbnail.png" url="pages/miscellaneous/wordle.html" />
-
-                    </li>
-                    <br />
-                    <br />
-                    <hr>
-                    <li>
-                        <article-card title="Detecting the Facebook outage with PyBGPStream" started="November 2021"
-                            description="On 4th October 2021, a misconfiguration caused major DNS resolvers to fail when querying facebook.com, resulting in worldwide access loss to Facebook and its associated services. This outage highlights the importance of the little-known yet vital internet protocol BGP. This blog post delves into BGP and DNS, unpacks the Facebook incident, and demonstrates detecting such outages using PyBGPStream."
-                            image-src="/images/miscellaneous/bgp_measurements/routers.png"
-                            url="pages/miscellaneous/bgp_measurements.html" />
-                    </li>
-                    <br />
-                    <hr>
-                    <li>
-                        <article-card title="Thea - An ML camera trap image analysis tool" started="August 2021"
-                            description="A friend's camera trap often captures thousands of irrelevant photos of leaves and branches, which he has to manually sorting through to find wildlife shots. Recognizing a machine learning opportunity, I developed a system to automate the sorting process. My goal was to integrate the ML model into a user-friendly web application for camera trap enthusiasts, this was my first major project involving building distributed web apps on AWS."
-                            image-src="/images/miscellaneous/thea/thea_thumbnail.png" url="pages/miscellaneous/thea.html" />
-                    </li>
-                    <br />
-                    <hr>
-                    <li>
-                        <article-card title="Paper Review: Searching for Fast Model Families on Datacenter Accelerators" started="March 2021"
-                            description="A review on a paper I studied in detail whilst exploring more powerful backbones for object detectors. This paper introduced the new EfficientNetX series of backbone architectures."
-                            image-src="/images/miscellaneous/efficientnetx/compoundscaling.png" url="pages/miscellaneous/efficientnetx.html" />
-                    </li>
-                    <br />
-                    <hr>
-                    <li>
-                        <article-card title="On not burning out" started="January 2021"
-                            description="A personal reminder that balance in life is important."
-                            image-src="/images/miscellaneous/burningout/zen.jpeg" url="pages/miscellaneous/burningout.html" />
-                    </li>
-                    <br />
-                    <hr>
-                    <li>
-                        <article-card title="Building a neural network library from scratch" started="April 2018"
-                            description="Building things from scratch is a good way to learn how they work. This project was an attempt to build a neural network library using numpy. I implemented forwards and backwards passes for a few different types of layers, several different loss functions, and weight initialisation schemes."
-                            image-src="/images/miscellaneous/networklibrary/neural_network_library_thumbnail.png"
-                            url="pages/miscellaneous/networklibrary.html" />
-                    </li>
-                    <br />
-                    <hr>
-                    <li>
-                        <article-card title="Small neural network for car control" started="September 2017"
-                            description="A fun toy problem to explore the use of genetic algorithms for training neural networks. The car is controlled with a simple network that takes as input the distance between the car and the walls, it outputs a steering and acceleration command."
-                            image-src="/images/miscellaneous/carcontrol/small_nn_car_control_result.gif"
-                            url="pages/miscellaneous/carcontrol.html" />
-                    </li>
-
-                </ul>
-            </div>
-
+        <div
+          style="
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+          "
+        >
+          <img
+            style="width: 24px; margin-right: 16px"
+            src="https://img.icons8.com/ios-filled/50/2F344C/linkedin.png"
+            alt="LinkedIn logo"
+          />
+          <p>
+            <a href="https://www.linkedin.com/in/harry-j-turner/"
+              >Find me on LinkedIn</a
+            >
+          </p>
         </div>
-    </body>
-    <footer>
-    </footer>
+        <div
+          style="
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+          "
+        >
+          <img
+            style="width: 24px; margin-right: 16px"
+            src="https://img.icons8.com/ios-filled/50/2F344C/parse-from-clipboard.png"
+            alt="CV logo"
+          />
+          <p>
+            <a
+              href="https://drive.google.com/file/d/1cfspXKnZ_5-ySoS9vqUacbd8LIjvlU8g/view?usp=sharing"
+              >Download my CV</a
+            >
+          </p>
+        </div>
+        <div
+          style="
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+          "
+        >
+          <img
+            style="width: 24px; margin-right: 16px"
+            src="https://img.icons8.com/ios-filled/50/2F344C/mail.png"
+            alt="Mail logo"
+          />
+          <p>henry.j.turner@gmail.com</p>
+        </div>
 
+        <div
+          style="
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+          "
+        >
+          <img
+            style="width: 24px; margin-right: 16px; margin-top: 4px"
+            src="https://img.icons8.com/ios-filled/50/2F344C/web.png"
+            alt="Tech logo"
+          />
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              justify-content: flex-start;
+              align-items: flex-start;
+            "
+          >
+            <p style="margin: 0; padding: 0">Technologies I have used a lot:</p>
+            <p style="margin: 0; padding: 0">
+              <i>
+                Python, Go, TypeScript, Django, React, AWS, PostgreSQL, Docker,
+                Terraform, Kubernetes, PyTorch, Prometheus, Github Actions.
+              </i>
+            </p>
+          </div>
+        </div>
+
+        <br />
+        <br />
+      </div>
+
+      <div id="professional">
+        <br />
+        <h1>Things I've built professionally</h1>
+        <hr />
+        <br />
+        <ul>
+          <li>
+            <article-card
+              title="Continuum"
+              started="March 2024"
+              description="Continuum is an AI powered journal that uses large language models to analyse thinking patterns and organise ideas. It's a tool I use daily for jotting down notes related to my work and personal projects. The weekly auto-generated report keeps me on top of things.  "
+              image-src="/images/headers/continuum.png"
+              url="https://app.continuum-journal.com"
+            />
+          </li>
+          <br />
+          <li>
+            <article-card
+              title="Vaarst Data Platform"
+              started="April 2021 to April 2023"
+              description="Led a team of seven in building and operating Vaarst's Data Platform. This was an exercise in building reliabliity, which we achieve with a strong focus on testing, monitoring, and good software development practices. I owned the system architecture, and built a system that streamed 3D pointcloud data from the Northsea to the browser in the office. "
+              image-src="/images/headers/platform.png"
+              url="pages/llm_agents.html"
+            />
+          </li>
+          <br />
+
+          <li>
+            <article-card
+              title="Automating Subsea Asset Inspection"
+              started="January 2019 to April 2021"
+              description="I identified an opportunity for automating subsea asset inspection using content-based image retrieval techniques. Initial work involved experimentation and building a proof of concept. Later on I productionised the application using AWS. Operation with customer reduced inspection workload by two thirds. "
+              image-src="/images/headers/inspect.png"
+              url="https://vaarst.com/news/pipeline-inspection/"
+            />
+          </li>
+        </ul>
+        <br />
+        <br />
+      </div>
+
+      <div id="writing">
+        <br />
+        <h1>Things I've written about online</h1>
+        <hr />
+        <br />
+        <ul>
+          <li>
+            <article-card
+              title="Building LLM Agents Series (1 article so far)"
+              started="Started March 2024"
+              description="A series of articles on building embodied LLM agents in Minecraft. Rather than a how-to this is more of a documented journey of discovery where I try things out to see what works. We'll build up to the Voyager paper."
+              image-src="/images/headers/llm_agents.png"
+              url="pages/llm_agents.html"
+            />
+          </li>
+          <br />
+
+          <li>
+            <article-card
+              title="Object Detection with Deep Learning Series (9 articles)"
+              started="September 2020 to January 2021"
+              description="My early work at Rovco involved building object detection systems for underwater objects using the popular architectures of the time (Mask R-CNN, YOLOv3, SSD, etc). This series of articles explains the technical detail behind these architectures, and how they evolved over time."
+              image-src="/images/headers/object_detection_with_deep_learning_teaser.png"
+              url="pages/object_detection.html"
+            />
+          </li>
+        </ul>
+        <br />
+        <br />
+      </div>
+
+      <div id="projects">
+        <br />
+        <h1>Things I've built for fun</h1>
+        <hr />
+        <br />
+        <ul>
+          <li>
+            <article-card
+              title="Meal Planner"
+              started="February 2024"
+              description="A fun little app that I now use a lot. The idea is to pick recipes that all use similar ingredients to minimise the number of half empty jars and packets in the fridge that end up going off and being thrown away (something I'm quite guilty of). "
+              image-src="/images/miscellaneous/meal-planner/header.png"
+              url="https://meal-planner.harrysprojects.com"
+            />
+          </li>
+          <br />
+
+          <li>
+            <article-card
+              title="Python wordle solver"
+              started="January 2022"
+              description="I 'got into' Wordle a couple of weeks ago. Some friends and I have a competition going on Whatsapp where we submit our daily scores. I thought the task of building a Wordle Solver would be a fun and worthwhile challenge."
+              image-src="/images/miscellaneous/wordle/thumbnail.png"
+              url="pages/miscellaneous/wordle.html"
+            />
+          </li>
+          <br />
+
+          <li>
+            <article-card
+              title="Generating Artificial Training Data"
+              started="July 2018"
+              description="A small project to solve an object detection task with no real training data at all."
+              image-src="/images/headers/artificial_thumbnail.png"
+              url="/pages/active_learning/artificial.html"
+            />
+          </li>
+          <br />
+
+          <li>
+            <article-card
+              title="Building a neural network library from scratch"
+              started="April 2018"
+              description="Building things from scratch is a good way to learn how they work. This project was an attempt to build a neural network library using numpy. I implemented forwards and backwards passes for a few different types of layers, several different loss functions, and weight initialisation schemes."
+              image-src="/images/miscellaneous/networklibrary/neural_network_library_thumbnail.png"
+              url="pages/miscellaneous/networklibrary.html"
+            />
+          </li>
+          <br />
+
+          <li>
+            <article-card
+              title="Small neural network for car control"
+              started="September 2017"
+              description="A fun toy problem to explore the use of genetic algorithms for training neural networks. The car is controlled with a simple network that takes as input the distance between the car and the walls, it outputs a steering and acceleration command."
+              image-src="/images/miscellaneous/carcontrol/small_nn_car_control_result.gif"
+              url="pages/miscellaneous/carcontrol.html"
+            />
+          </li>
+        </ul>
+      </div>
+
+      <br />
+      <br />
+      <p>© 2024 Harry's Projects. All rights reserved.</p>
+    </div>
+  </body>
+  <footer></footer>
 </html>
